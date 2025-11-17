@@ -61,6 +61,15 @@ const Home = () => {
       const score = await vibeService.fetchVibrancyReport(token.symbol);
       setQuickScore(score);
     } catch (error) {
+      // Handle access denied errors differently
+      if (error.message.includes('access denied')) {
+        toast({
+          title: "Report Locked",
+          description: "Purchase required to access this token's analysis"
+        });
+        return;
+      }
+      
       toast({
         title: "Analysis Failed",
         description: "Unable to analyze token. Please try again."

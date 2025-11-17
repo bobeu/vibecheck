@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CreditCard, Loader2, CheckCircle, AlertCircle, X, Zap } from 'lucide-react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { paymentService, type PaymentResult } from '@/lib/paymentService';
 
@@ -71,6 +71,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={resetAndClose}>
       <DialogContent className="sm:max-w-md border-border/50 bg-card">
+        <DialogHeader>
+          <DialogTitle className="sr-only">
+            {title}
+          </DialogTitle>
+        </DialogHeader>
         <div className="flex justify-end">
           <Button variant="ghost" size="sm" onClick={resetAndClose}>
             <X className="h-4 w-4" />

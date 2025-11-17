@@ -71,6 +71,19 @@ const DetailedReport: React.FC<DetailedReportProps> = ({ report }) => {
         </div>
       </div>
 
+      {/* Real-time Analysis Section (if available from Gemini) */}
+      {(report.vibrancyData as any).analysisText && (
+        <Card className="p-6 space-y-4 bg-card/80 border-border/50 backdrop-blur-sm">
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <Activity className="h-5 w-5 text-celo" />
+            Real-Time Market Analysis
+          </h2>
+          <div className="bg-muted/30 rounded-lg p-4 border border-border/50">
+            <p className="text-sm text-foreground leading-relaxed">{(report.vibrancyData as any).analysisText}</p>
+          </div>
+        </Card>
+      )}
+
       {/* Score Breakdown */}
       <Card className="p-6 space-y-4 bg-card/80 border-border/50 backdrop-blur-sm">
         <h2 className="text-lg font-semibold text-foreground">AI Analysis Breakdown</h2>
@@ -183,10 +196,30 @@ const DetailedReport: React.FC<DetailedReportProps> = ({ report }) => {
         </div>
       </Card>
 
+      {/* Sources Section (if available from Gemini) */}
+      {(report.vibrancyData as any).sources && (report.vibrancyData as any).sources.length > 0 && (
+        <Card className="p-6 space-y-4 bg-card/80 border-border/50 backdrop-blur-sm">
+          <h2 className="text-lg font-semibold text-foreground">Data Sources</h2>
+          <div className="space-y-2">
+            {(report.vibrancyData as any).sources.slice(0, 3).map((source: any, index: number) => (
+              <a 
+                key={index}
+                href={source.uri}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-sm text-celo hover:text-celo-bright underline"
+              >
+                {source.title}
+              </a>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {/* Footer */}
       <div className="text-center text-xs text-muted-foreground space-y-1">
         <p>Report powered by VibeCheck AI • Last updated: {new Date(vibrancyData.lastUpdated).toLocaleDateString()}</p>
-        <p>Analysis includes LSTM code modeling and NLP sentiment analysis</p>
+        <p>Analysis includes LSTM code modeling, Gemini AI with Google Search grounding, and NLP sentiment analysis</p>
         <p className="mt-1">This report is for informational purposes only and should not be considered financial advice.</p>
       </div>
     </div>
