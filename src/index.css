@@ -1,0 +1,207 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* VibeCheck Design System - Celo-inspired with AI/Data focus */
+
+@layer base {
+  :root {
+    /* Core Celo-inspired palette */
+    --background: 0 0% 100%;
+    --foreground: 210 20% 15%;
+
+    /* Celo signature green variants */
+    --primary: 150 85% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 150 75% 55%;
+    --primary-glow: 150 85% 65%;
+
+    /* Complementary blue/cyan for data viz */
+    --secondary: 195 95% 55%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-light: 195 85% 65%;
+    --secondary-dark: 195 95% 45%;
+
+    /* Accent colors for scoring */
+    --accent: 45 95% 60%;
+    --accent-foreground: 210 20% 15%;
+    --accent-green: 120 85% 50%;
+    --accent-orange: 25 95% 55%;
+    --accent-red: 0 85% 60%;
+
+    /* Neutral system */
+    --muted: 210 15% 96%;
+    --muted-foreground: 210 15% 45%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 20% 15%;
+    --border: 210 20% 90%;
+    --input: 210 20% 94%;
+    --ring: 150 85% 45%;
+
+    /* Popover and UI elements */
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 20% 15%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --radius: 12px;
+
+    /* VibeCheck specific gradients */
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--primary-glow)) 100%
+    );
+    --gradient-secondary: linear-gradient(
+      135deg,
+      hsl(var(--secondary)) 0%,
+      hsl(var(--secondary-light)) 100%
+    );
+    --gradient-success: linear-gradient(
+      135deg,
+      hsl(var(--accent-green)) 0%,
+      hsl(var(--primary)) 100%
+    );
+    --gradient-warning: linear-gradient(
+      135deg,
+      hsl(var(--accent-orange)) 0%,
+      hsl(var(--accent)) 100%
+    );
+    --gradient-danger: linear-gradient(
+      135deg,
+      hsl(var(--accent-red)) 0%,
+      hsl(25 85% 55%) 100%
+    );
+    --gradient-data: linear-gradient(
+      180deg,
+      hsl(var(--secondary-light)) 0%,
+      hsl(var(--secondary)) 100%
+    );
+
+    /* Scoring system colors */
+    --score-excellent: 120 85% 50%;
+    --score-good: 150 85% 45%;
+    --score-fair: 45 95% 60%;
+    --score-poor: 25 95% 55%;
+    --score-critical: 0 85% 60%;
+
+    /* Shadows and effects */
+    --shadow-soft: 0 4px 20px -4px hsl(var(--primary) / 0.15);
+    --shadow-glow: 0 0 30px hsl(var(--primary-glow) / 0.3);
+    --shadow-data: 0 8px 32px -8px hsl(var(--secondary) / 0.2);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--gradient-primary);
+    border-radius: 4px;
+  }
+}
+
+/* Component-specific utilities */
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+
+  .gradient-success {
+    background: var(--gradient-success);
+  }
+
+  .gradient-warning {
+    background: var(--gradient-warning);
+  }
+
+  .gradient-danger {
+    background: var(--gradient-danger);
+  }
+
+  .gradient-data {
+    background: var(--gradient-data);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-data {
+    box-shadow: var(--shadow-data);
+  }
+
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+
+  .transition-bounce {
+    transition: var(--transition-bounce);
+  }
+
+  /* Score-based text colors */
+  .text-score-excellent {
+    color: hsl(var(--score-excellent));
+  }
+
+  .text-score-good {
+    color: hsl(var(--score-good));
+  }
+
+  .text-score-fair {
+    color: hsl(var(--score-fair));
+  }
+
+  .text-score-poor {
+    color: hsl(var(--score-poor));
+  }
+
+  .text-score-critical {
+    color: hsl(var(--score-critical));
+  }
+
+  /* Animated pulse for loading states */
+  .pulse-glow {
+    animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+    }
+    50% {
+      opacity: 0.8;
+      box-shadow: 0 0 40px hsl(var(--primary) / 0.5);
+    }
+  }
+}
