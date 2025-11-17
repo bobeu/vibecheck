@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, Plus, Trash2, Crown, Zap } from 'lucide-react';
+import { Star, Plus, Trash2, Crown, Zap, User } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import VibrancyScore from './VibrancyScore';
 import PaymentModal from './PaymentModal';
 import { paymentService, type WatchlistItem } from '@/lib/paymentService';
 import { vibeService, type VibrancyData, type TokenInfo } from '@/lib/vibeService';
+import { firebaseService } from '@/lib/firebaseService';
 
 interface WatchlistProps {
   onTokenSelect: (token: TokenInfo) => void;
@@ -18,44 +19,70 @@ const Watchlist: React.FC<WatchlistProps> = ({ onTokenSelect }) => {
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [isPremium, setIsPremium] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [unsubscribe, setUnsubscribe] = useState<(() => void) | null>(null);
 
   useEffect(() => {
-    loadWatchlist();
-    checkPremiumStatus();
+    // Set up Firebase auth listener
+    firebaseService.onAuthChange((newUserId) => {
+      setUserId(newUserId);
+      if (newUserId) {
+        loadWatchlist();
+        checkPremiumStatus();
+      }
+    });
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const loadWatchlist = () => {
-    const items = paymentService.getWatchlist();
-    setWatchlist(items);
+    if (unsubscribe) {
+      unsubscribe();
+    }
+
+    // Set up real-time subscription
+    const unsub = paymentService.subscribeToWatchlist((items) => {
+      setWatchlist(items);
+      
+      // Load scores for new tokens
+      items.forEach(item => {
+        if (!scores[item.tokenId]) {
+          loadScore(item.tokenId);
+        }
+      });
+    });
     
-    // Load scores for each token
-    items.forEach(item => loadScore(item.symbol));
+    setUnsubscribe(() => unsub);
   };
 
-  const checkPremiumStatus = () => {
-    setIsPremium(paymentService.hasPremiumWatchlist());
+  const checkPremiumStatus = async () => {
+    const premium = await paymentService.hasPremiumWatchlist();
+    setIsPremium(premium);
   };
 
-  const loadScore = async (symbol: string) => {
-    if (scores[symbol]) return; // Already loaded
+  const loadScore = async (tokenId: string) => {
+    if (scores[tokenId] || loading[tokenId]) return;
 
-    setLoading(prev => ({ ...prev, [symbol]: true }));
+    setLoading(prev => ({ ...prev, [tokenId]: true }));
     try {
-      const score = await vibeService.getVibrancyScore(symbol);
-      setScores(prev => ({ ...prev, [symbol]: score }));
+      const score = await vibeService.getVibrancyScore(tokenId);
+      setScores(prev => ({ ...prev, [tokenId]: score }));
     } catch (error) {
-      console.error(`Failed to load score for ${symbol}:`, error);
+      console.error(`Failed to load score for ${tokenId}:`, error);
     } finally {
-      setLoading(prev => ({ ...prev, [symbol]: false }));
+      setLoading(prev => ({ ...prev, [tokenId]: false }));
     }
   };
 
-  const removeFromWatchlist = (symbol: string) => {
-    paymentService.removeFromWatchlist(symbol);
-    loadWatchlist();
+  const removeFromWatchlist = async (tokenId: string) => {
+    await paymentService.removeFromWatchlist(tokenId);
     setScores(prev => {
       const newScores = { ...prev };
-      delete newScores[symbol];
+      delete newScores[tokenId];
       return newScores;
     });
   };
@@ -70,35 +97,48 @@ const Watchlist: React.FC<WatchlistProps> = ({ onTokenSelect }) => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Star className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-bold">Watchlist</h2>
-          {isPremium && <Crown className="h-4 w-4 text-accent" />}
+      {/* Header with User ID */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Star className="h-5 w-5 text-celo" />
+            <h2 className="text-xl font-bold text-foreground">Watchlist</h2>
+            {isPremium && <Crown className="h-4 w-4 text-celo animate-glow" />}
+          </div>
+          <Badge variant="outline" className="border-celo/30 text-celo">
+            {watchlist.length}/{maxTokens}
+          </Badge>
         </div>
-        <Badge variant={isPremium ? "default" : "secondary"}>
-          {watchlist.length}/{maxTokens}
-        </Badge>
+
+        {/* User ID Display */}
+        {userId && (
+          <div className="flex items-center gap-2 px-3 py-2 bg-muted/30 rounded-lg border border-border/50">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">User:</span>
+            <code className="text-xs text-celo font-mono">
+              {userId.substring(0, 8)}...{userId.substring(-4)}
+            </code>
+          </div>
+        )}
       </div>
 
       {/* Upgrade Banner */}
       {!isPremium && (
-        <Card className="p-4 gradient-secondary border-secondary/30">
+        <Card className="p-4 gradient-fusion border-celo/30 shadow-celo">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg">
-                <Crown className="h-5 w-5 text-white" />
+              <div className="p-2 bg-black/20 rounded-lg">
+                <Crown className="h-5 w-5 text-primary-foreground" />
               </div>
               <div>
-                <div className="font-semibold text-white">Upgrade to Premium</div>
-                <div className="text-sm text-white/80">Track up to 5 tokens with real-time updates</div>
+                <div className="font-semibold text-primary-foreground">Upgrade to Premium</div>
+                <div className="text-sm text-primary-foreground/80">Track up to 5 tokens with real-time updates</div>
               </div>
             </div>
             <Button
               onClick={() => setShowUpgradeModal(true)}
               size="sm"
-              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+              className="bg-black/20 hover:bg-black/30 text-primary-foreground border border-primary-foreground/30 shadow-none"
             >
               <Zap className="h-4 w-4 mr-1" />
               3 cUSD
@@ -111,27 +151,27 @@ const Watchlist: React.FC<WatchlistProps> = ({ onTokenSelect }) => {
       {watchlist.length > 0 ? (
         <div className="grid gap-4">
           {watchlist.map((item) => {
-            const score = scores[item.symbol];
-            const isLoading = loading[item.symbol];
+            const score = scores[item.tokenId];
+            const isLoading = loading[item.tokenId];
 
             return (
               <Card 
-                key={item.symbol} 
-                className="p-4 hover:shadow-soft transition-smooth cursor-pointer border-border/50 hover:border-primary/30"
+                key={item.tokenId} 
+                className="p-4 hover:shadow-celo transition-all duration-300 cursor-pointer border-border/50 hover:border-celo/30 bg-card/80 backdrop-blur-sm"
                 onClick={() => onTokenSelect({ 
-                  symbol: item.symbol, 
+                  symbol: item.tokenId, 
                   name: item.name 
                 })}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">
-                        {item.symbol.charAt(0)}
+                    <div className="w-10 h-10 rounded-full gradient-celo flex items-center justify-center shadow-celo">
+                      <span className="text-primary-foreground font-bold text-sm">
+                        {item.tokenId.charAt(0)}
                       </span>
                     </div>
                     <div>
-                      <div className="font-semibold">{item.symbol}</div>
+                      <div className="font-semibold text-foreground">{item.tokenId}</div>
                       <div className="text-sm text-muted-foreground">{item.name}</div>
                     </div>
                   </div>
@@ -152,7 +192,7 @@ const Watchlist: React.FC<WatchlistProps> = ({ onTokenSelect }) => {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        removeFromWatchlist(item.symbol);
+                        removeFromWatchlist(item.tokenId);
                       }}
                       className="text-muted-foreground hover:text-destructive"
                     >
@@ -165,11 +205,11 @@ const Watchlist: React.FC<WatchlistProps> = ({ onTokenSelect }) => {
           })}
         </div>
       ) : (
-        <Card className="p-8 text-center">
+        <Card className="p-8 text-center bg-card/50">
           <Star className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="font-semibold mb-2">Your watchlist is empty</h3>
+          <h3 className="font-semibold mb-2 text-foreground">Your watchlist is empty</h3>
           <p className="text-sm text-muted-foreground">
-            Add tokens to track their Vibrancy Scores
+            Add tokens to track their Vibrancy Scores in real-time
           </p>
         </Card>
       )}

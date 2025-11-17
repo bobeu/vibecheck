@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CreditCard, Loader2, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { CreditCard, Loader2, CheckCircle, AlertCircle, X, Zap } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { paymentService, type PaymentResult } from '@/lib/paymentService';
@@ -24,12 +24,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   const amount = type === 'report' ? '1' : '3';
   const title = type === 'report' 
-    ? `Unlock Full ${tokenSymbol} Report` 
-    : 'Upgrade to Premium Watchlist';
+    ? `Unlock ${tokenSymbol} Analysis` 
+    : 'Upgrade to Premium';
   
   const description = type === 'report'
-    ? 'Get detailed AI analysis, insights, and predictions'
-    : 'Track up to 5 tokens with real-time updates';
+    ? 'Get complete AI analysis with predictions and insights'
+    : 'Track up to 5 tokens with real-time Vibrancy updates';
 
   const handlePayment = async () => {
     setIsProcessing(true);
@@ -70,7 +70,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={resetAndClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md border-border/50 bg-card">
         <div className="flex justify-end">
           <Button variant="ghost" size="sm" onClick={resetAndClose}>
             <X className="h-4 w-4" />
@@ -80,36 +80,47 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         <div className="space-y-6 pb-4">
           {/* Header */}
           <div className="text-center space-y-2">
-            <div className="w-16 h-16 mx-auto gradient-primary rounded-full flex items-center justify-center mb-4">
-              <CreditCard className="h-8 w-8 text-white" />
+            <div className="w-16 h-16 mx-auto gradient-celo rounded-full flex items-center justify-center mb-4 shadow-celo">
+              {type === 'report' ? (
+                <CreditCard className="h-8 w-8 text-primary-foreground" />
+              ) : (
+                <Zap className="h-8 w-8 text-primary-foreground" />
+              )}
             </div>
-            <h2 className="text-xl font-bold">{title}</h2>
+            <h2 className="text-xl font-bold text-foreground">{title}</h2>
             <p className="text-muted-foreground">{description}</p>
           </div>
 
           {/* Pricing */}
-          <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+          <div className="bg-muted/50 rounded-lg p-4 space-y-3 border border-border/50">
             <div className="flex justify-between items-center">
-              <span className="font-medium">Price</span>
-              <span className="text-xl font-bold text-primary">{amount} cUSD</span>
+              <span className="font-medium text-foreground">Price</span>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold text-celo glow-text">{amount}</span>
+                <span className="text-minipay font-semibold">cUSD</span>
+              </div>
             </div>
             <div className="text-xs text-muted-foreground">
-              Payment will be processed through MiniPay using your connected wallet
+              Payment processed through MiniPay • Secure cUSD transaction
             </div>
           </div>
 
           {/* Payment Status */}
           {result && (
-            <div className={`p-4 rounded-lg flex items-center gap-3 ${
-              result.success ? 'bg-accent-green/10 border border-accent-green/20' : 'bg-destructive/10 border border-destructive/20'
+            <div className={`p-4 rounded-lg flex items-center gap-3 border ${
+              result.success 
+                ? 'bg-minipay/10 border-minipay/30' 
+                : 'bg-destructive/10 border-destructive/20'
             }`}>
               {result.success ? (
-                <CheckCircle className="h-5 w-5 text-accent-green flex-shrink-0" />
+                <CheckCircle className="h-5 w-5 text-minipay flex-shrink-0" />
               ) : (
                 <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
               )}
               <div className="flex-1">
-                <div className={`font-medium ${result.success ? 'text-accent-green' : 'text-destructive'}`}>
+                <div className={`font-medium ${
+                  result.success ? 'text-minipay' : 'text-destructive'
+                }`}>
                   {result.success ? 'Payment Successful!' : 'Payment Failed'}
                 </div>
                 {result.success && result.transactionHash && (
@@ -131,7 +142,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             <Button
               onClick={handlePayment}
               disabled={isProcessing}
-              className="w-full h-12 text-base font-semibold gradient-primary hover:opacity-90"
+              className="w-full h-12 text-base font-semibold gradient-celo hover:opacity-90 shadow-celo transition-all duration-300"
             >
               {isProcessing ? (
                 <>
@@ -151,7 +162,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             <Button
               onClick={handlePayment}
               variant="outline"
-              className="w-full"
+              className="w-full border-celo/30 text-celo hover:bg-celo/10"
             >
               Try Again
             </Button>

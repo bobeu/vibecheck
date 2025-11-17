@@ -2,93 +2,109 @@
 @tailwind components;
 @tailwind utilities;
 
-/* VibeCheck Design System - Celo-inspired with AI/Data focus */
+/* VibeCheck Production - Celo Yellow & MiniPay Green Aesthetic */
 
 @layer base {
   :root {
-    /* Core Celo-inspired palette */
-    --background: 0 0% 100%;
-    --foreground: 210 20% 15%;
+    /* Dark theme foundation */
+    --background: 220 13% 9%;
+    --foreground: 220 9% 95%;
 
-    /* Celo signature green variants */
-    --primary: 150 85% 45%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 150 75% 55%;
-    --primary-glow: 150 85% 65%;
+    /* Celo Yellow - Primary accent for CTAs and highlights */
+    --celo-yellow: 61 100% 65%;
+    --celo-yellow-bright: 61 100% 70%;
+    --celo-yellow-muted: 61 85% 55%;
 
-    /* Complementary blue/cyan for data viz */
-    --secondary: 195 95% 55%;
-    --secondary-foreground: 0 0% 100%;
-    --secondary-light: 195 85% 65%;
-    --secondary-dark: 195 95% 45%;
+    /* MiniPay Green - Secondary accent for positive indicators */
+    --minipay-green: 145 69% 53%;
+    --minipay-green-light: 145 69% 63%;
+    --minipay-green-dark: 145 69% 43%;
+
+    /* Primary system using Celo Yellow */
+    --primary: 61 100% 65%;
+    --primary-foreground: 220 13% 9%;
+    --primary-light: 61 100% 70%;
+    --primary-glow: 61 100% 75%;
+
+    /* Secondary system using MiniPay Green */
+    --secondary: 145 69% 53%;
+    --secondary-foreground: 220 13% 9%;
+    --secondary-light: 145 69% 63%;
+    --secondary-dark: 145 69% 43%;
 
     /* Accent colors for scoring */
-    --accent: 45 95% 60%;
-    --accent-foreground: 210 20% 15%;
-    --accent-green: 120 85% 50%;
+    --accent: 61 100% 65%;
+    --accent-foreground: 220 13% 9%;
+    --accent-green: 145 69% 53%;
     --accent-orange: 25 95% 55%;
     --accent-red: 0 85% 60%;
 
-    /* Neutral system */
-    --muted: 210 15% 96%;
-    --muted-foreground: 210 15% 45%;
-    --card: 0 0% 100%;
-    --card-foreground: 210 20% 15%;
-    --border: 210 20% 90%;
-    --input: 210 20% 94%;
-    --ring: 150 85% 45%;
+    /* Dark neutral system */
+    --muted: 220 13% 15%;
+    --muted-foreground: 220 9% 60%;
+    --card: 220 13% 12%;
+    --card-foreground: 220 9% 95%;
+    --border: 220 13% 20%;
+    --input: 220 13% 18%;
+    --ring: 61 100% 65%;
 
     /* Popover and UI elements */
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 20% 15%;
+    --popover: 220 13% 12%;
+    --popover-foreground: 220 9% 95%;
     --destructive: 0 85% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 220 9% 95%;
 
     --radius: 12px;
 
-    /* VibeCheck specific gradients */
-    --gradient-primary: linear-gradient(
+    /* VibeCheck Production Gradients */
+    --gradient-celo: linear-gradient(
       135deg,
-      hsl(var(--primary)) 0%,
-      hsl(var(--primary-glow)) 100%
+      hsl(var(--celo-yellow)) 0%,
+      hsl(var(--celo-yellow-bright)) 100%
     );
-    --gradient-secondary: linear-gradient(
+    --gradient-minipay: linear-gradient(
       135deg,
-      hsl(var(--secondary)) 0%,
-      hsl(var(--secondary-light)) 100%
+      hsl(var(--minipay-green)) 0%,
+      hsl(var(--minipay-green-light)) 100%
+    );
+    --gradient-fusion: linear-gradient(
+      135deg,
+      hsl(var(--celo-yellow)) 0%,
+      hsl(var(--minipay-green)) 100%
     );
     --gradient-success: linear-gradient(
       135deg,
-      hsl(var(--accent-green)) 0%,
-      hsl(var(--primary)) 100%
+      hsl(var(--minipay-green)) 0%,
+      hsl(var(--minipay-green-light)) 100%
     );
     --gradient-warning: linear-gradient(
       135deg,
       hsl(var(--accent-orange)) 0%,
-      hsl(var(--accent)) 100%
+      hsl(var(--celo-yellow)) 100%
     );
     --gradient-danger: linear-gradient(
       135deg,
       hsl(var(--accent-red)) 0%,
       hsl(25 85% 55%) 100%
     );
-    --gradient-data: linear-gradient(
+    --gradient-bg: linear-gradient(
       180deg,
-      hsl(var(--secondary-light)) 0%,
-      hsl(var(--secondary)) 100%
+      hsl(var(--background)) 0%,
+      hsl(220 13% 7%) 100%
     );
 
     /* Scoring system colors */
-    --score-excellent: 120 85% 50%;
-    --score-good: 150 85% 45%;
+    --score-excellent: 145 69% 53%;
+    --score-good: 61 100% 65%;
     --score-fair: 45 95% 60%;
     --score-poor: 25 95% 55%;
     --score-critical: 0 85% 60%;
 
-    /* Shadows and effects */
-    --shadow-soft: 0 4px 20px -4px hsl(var(--primary) / 0.15);
-    --shadow-glow: 0 0 30px hsl(var(--primary-glow) / 0.3);
-    --shadow-data: 0 8px 32px -8px hsl(var(--secondary) / 0.2);
+    /* Vibrant shadows and effects */
+    --shadow-celo: 0 4px 20px -4px hsl(var(--celo-yellow) / 0.25);
+    --shadow-minipay: 0 4px 20px -4px hsl(var(--minipay-green) / 0.25);
+    --shadow-glow: 0 0 40px hsl(var(--celo-yellow) / 0.3);
+    --shadow-data: 0 8px 32px -8px hsl(var(--minipay-green) / 0.2);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -102,9 +118,10 @@
   }
 
   body {
-    background-color: hsl(var(--background));
+    background: var(--gradient-bg);
     color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
+    min-height: 100vh;
   }
 
   /* Custom scrollbar */
@@ -117,19 +134,23 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--gradient-primary);
+    background: var(--gradient-celo);
     border-radius: 4px;
   }
 }
 
 /* Component-specific utilities */
 @layer utilities {
-  .gradient-primary {
-    background: var(--gradient-primary);
+  .gradient-celo {
+    background: var(--gradient-celo);
   }
 
-  .gradient-secondary {
-    background: var(--gradient-secondary);
+  .gradient-minipay {
+    background: var(--gradient-minipay);
+  }
+
+  .gradient-fusion {
+    background: var(--gradient-fusion);
   }
 
   .gradient-success {
@@ -144,16 +165,20 @@
     background: var(--gradient-danger);
   }
 
-  .gradient-data {
-    background: var(--gradient-data);
+  .gradient-bg {
+    background: var(--gradient-bg);
+  }
+
+  .shadow-celo {
+    box-shadow: var(--shadow-celo);
+  }
+
+  .shadow-minipay {
+    box-shadow: var(--shadow-minipay);
   }
 
   .shadow-glow {
     box-shadow: var(--shadow-glow);
-  }
-
-  .shadow-soft {
-    box-shadow: var(--shadow-soft);
   }
 
   .shadow-data {
@@ -189,19 +214,31 @@
     color: hsl(var(--score-critical));
   }
 
-  /* Animated pulse for loading states */
-  .pulse-glow {
-    animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  .text-celo {
+    color: hsl(var(--celo-yellow));
   }
 
-  @keyframes pulse-glow {
+  .text-minipay {
+    color: hsl(var(--minipay-green));
+  }
+
+  /* Animated effects */
+  .pulse-celo {
+    animation: pulse-celo 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-celo {
     0%, 100% {
       opacity: 1;
-      box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+      box-shadow: 0 0 20px hsl(var(--celo-yellow) / 0.3);
     }
     50% {
-      opacity: 0.8;
-      box-shadow: 0 0 40px hsl(var(--primary) / 0.5);
+      opacity: 0.9;
+      box-shadow: 0 0 40px hsl(var(--celo-yellow) / 0.5);
     }
+  }
+
+  .glow-text {
+    text-shadow: 0 0 10px hsl(var(--celo-yellow) / 0.5);
   }
 }

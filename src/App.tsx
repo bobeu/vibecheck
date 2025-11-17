@@ -16,6 +16,7 @@ import Watchlist from '@/components/Watchlist';
 
 import { vibeService, type TokenInfo, type VibrancyData, type DetailedReport as ReportType } from '@/lib/vibeService';
 import { paymentService } from '@/lib/paymentService';
+import { firebaseService } from '@/lib/firebaseService';
 
 const Home = () => {
   const { toast } = useToast();
@@ -26,14 +27,27 @@ const Home = () => {
   const [isLoadingScore, setIsLoadingScore] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [watchlist, setWatchlist] = useState<string[]>([]);
+  const [hasReportAccess, setHasReportAccess] = useState(false);
 
   useEffect(() => {
     loadWatchlist();
   }, []);
 
-  const loadWatchlist = () => {
-    const items = paymentService.getWatchlist();
-    setWatchlist(items.map(item => item.symbol));
+  useEffect(() => {
+    if (selectedToken) {
+      checkReportAccess();
+    }
+  }, [selectedToken]);
+
+  const loadWatchlist = async () => {
+    const items = await paymentService.getWatchlist();
+    setWatchlist(items.map(item => item.tokenId));
+  };
+
+  const checkReportAccess = async () => {
+    if (!selectedToken) return;
+    const access = await paymentService.hasAccessToReport(selectedToken.symbol);
+    setHasReportAccess(access);
   };
 
   const handleTokenSelect = async (token: TokenInfo) => {
@@ -43,36 +57,36 @@ const Home = () => {
     setIsLoadingScore(true);
 
     try {
-      // Load quick score first
-      const score = await vibeService.getVibrancyScore(token.symbol);
+      // Load quick score first using production-ready function
+      const score = await vibeService.fetchVibrancyReport(token.symbol);
       setQuickScore(score);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to load Vibrancy Score. Please try again."
+        title: "Analysis Failed",
+        description: "Unable to analyze token. Please try again."
       });
     } finally {
       setIsLoadingScore(false);
     }
   };
 
-  const handleUnlockReport = () => {
+  const handleUnlockReport = async () => {
     if (!selectedToken) return;
     
-    // Check if user already has access
-    if (paymentService.hasAccessToReport(selectedToken.symbol)) {
-      loadDetailedReport();
+    if (hasReportAccess) {
+      await loadDetailedReport();
     } else {
       setShowPaymentModal(true);
     }
   };
 
-  const handlePaymentSuccess = (txHash: string) => {
+  const handlePaymentSuccess = async (txHash: string) => {
     toast({
       title: "Payment Successful!",
-      description: `Transaction: ${txHash.substring(0, 16)}...`
+      description: `TX: ${txHash.substring(0, 16)}...`
     });
-    loadDetailedReport();
+    setHasReportAccess(true);
+    await loadDetailedReport();
   };
 
   const loadDetailedReport = async () => {
@@ -84,38 +98,38 @@ const Home = () => {
       setDetailedReport(report);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to load detailed report. Please try again."
+        title: "Report Failed",
+        description: "Unable to generate detailed report. Please try again."
       });
     } finally {
       setIsLoadingScore(false);
     }
   };
 
-  const handleAddToWatchlist = () => {
+  const handleAddToWatchlist = async () => {
     if (!selectedToken) return;
 
-    const success = paymentService.addToWatchlist(selectedToken.symbol, selectedToken.name);
+    const success = await paymentService.addToWatchlist(selectedToken.symbol, selectedToken.name);
     
     if (success) {
-      loadWatchlist();
+      await loadWatchlist();
       toast({
         title: "Added to Watchlist",
-        description: `${selectedToken.symbol} has been added to your watchlist`
+        description: `${selectedToken.symbol} is now being tracked`
       });
     } else {
-      const isPremium = paymentService.hasPremiumWatchlist();
+      const isPremium = await paymentService.hasPremiumWatchlist();
       const maxTokens = isPremium ? 5 : 2;
       
       if (watchlist.includes(selectedToken.symbol)) {
         toast({
-          title: "Already in Watchlist",
+          title: "Already Tracked",
           description: `${selectedToken.symbol} is already in your watchlist`
         });
       } else {
         toast({
           title: "Watchlist Full",
-          description: `You can track up to ${maxTokens} tokens. ${isPremium ? 'Remove a token to add this one.' : 'Upgrade to Premium to track more tokens.'}`
+          description: `Maximum ${maxTokens} tokens. ${isPremium ? 'Remove a token first.' : 'Upgrade to Premium for 5 slots.'}`
         });
       }
     }
@@ -125,33 +139,34 @@ const Home = () => {
     setSelectedToken(null);
     setQuickScore(null);
     setDetailedReport(null);
+    setHasReportAccess(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-secondary/10">
+    <div className="min-h-screen gradient-bg">
       <div className="container max-w-md mx-auto px-4 py-6">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="p-2 gradient-primary rounded-xl">
-              <Zap className="h-6 w-6 text-white" />
+            <div className="p-2 gradient-celo rounded-xl shadow-celo">
+              <Zap className="h-6 w-6 text-primary-foreground" />
             </div>
-            <h1 className="text-2xl font-bold">VibeCheck</h1>
+            <h1 className="text-2xl font-bold text-celo glow-text">VibeCheck</h1>
           </div>
           <p className="text-muted-foreground text-sm">
-            AI-Powered Crypto Project Viability
+            AI-Powered Crypto Project Viability • Celo MiniPay
           </p>
         </div>
 
         {/* Main Content */}
         {!selectedToken ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="search">
+            <TabsList className="grid w-full grid-cols-2 bg-muted/30">
+              <TabsTrigger value="search" className="data-[state=active]:bg-celo data-[state=active]:text-primary-foreground">
                 <Search className="h-4 w-4 mr-2" />
                 Search
               </TabsTrigger>
-              <TabsTrigger value="watchlist">
+              <TabsTrigger value="watchlist" className="data-[state=active]:bg-celo data-[state=active]:text-primary-foreground">
                 <Star className="h-4 w-4 mr-2" />
                 Watchlist
               </TabsTrigger>
@@ -171,7 +186,7 @@ const Home = () => {
             <Button 
               variant="ghost" 
               onClick={resetView}
-              className="mb-4"
+              className="mb-4 text-muted-foreground hover:text-celo"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Search
@@ -183,13 +198,13 @@ const Home = () => {
             ) : (
               <div className="space-y-6">
                 {/* Token Header */}
-                <Card className="p-6 text-center">
+                <Card className="p-6 text-center bg-card/80 border-border/50 backdrop-blur-sm">
                   <div className="flex items-center justify-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center">
-                      <span className="text-white font-bold">{selectedToken.symbol.charAt(0)}</span>
+                    <div className="w-12 h-12 rounded-full gradient-celo flex items-center justify-center shadow-celo">
+                      <span className="text-primary-foreground font-bold">{selectedToken.symbol.charAt(0)}</span>
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold">{selectedToken.symbol}</h2>
+                      <h2 className="text-xl font-bold text-foreground">{selectedToken.symbol}</h2>
                       <p className="text-muted-foreground">{selectedToken.name}</p>
                     </div>
                   </div>
@@ -215,37 +230,37 @@ const Home = () => {
                   <Button
                     onClick={handleUnlockReport}
                     disabled={isLoadingScore || !quickScore}
-                    className="w-full h-12 text-base font-semibold gradient-primary hover:opacity-90"
+                    className="w-full h-12 text-base font-semibold gradient-celo hover:opacity-90 shadow-celo transition-all duration-300"
                   >
                     <Eye className="mr-2 h-4 w-4" />
-                    {paymentService.hasAccessToReport(selectedToken.symbol) 
-                      ? 'View Full Report' 
-                      : 'Unlock Full Report (1 cUSD)'}
+                    {hasReportAccess 
+                      ? 'View Full Analysis' 
+                      : 'Unlock AI Report (1 cUSD)'}
                   </Button>
 
                   <Button
                     onClick={handleAddToWatchlist}
                     variant="outline"
-                    className="w-full"
+                    className="w-full border-celo/30 text-celo hover:bg-celo/10"
                     disabled={watchlist.includes(selectedToken.symbol)}
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     {watchlist.includes(selectedToken.symbol) 
-                      ? 'Already in Watchlist' 
+                      ? 'Already Tracked' 
                       : 'Add to Watchlist'}
                   </Button>
                 </div>
 
                 {/* Quick Insights Preview */}
                 {quickScore && (
-                  <Card className="p-4">
+                  <Card className="p-4 bg-muted/20 border-border/50">
                     <div className="text-center text-sm text-muted-foreground">
-                      <p>Unlock the full report to see:</p>
+                      <p>Unlock complete AI analysis to see:</p>
                       <div className="flex flex-wrap justify-center gap-2 mt-2">
-                        <Badge variant="secondary">Detailed Analysis</Badge>
-                        <Badge variant="secondary">AI Insights</Badge>
-                        <Badge variant="secondary">Risk Assessment</Badge>
-                        <Badge variant="secondary">Predictions</Badge>
+                        <Badge variant="outline" className="border-celo/30 text-celo">LSTM Code Analysis</Badge>
+                        <Badge variant="outline" className="border-minipay/30 text-minipay">NLP Sentiment</Badge>
+                        <Badge variant="outline" className="border-accent-orange/30 text-accent-orange">Risk Assessment</Badge>
+                        <Badge variant="outline" className="border-muted-foreground/30">AI Predictions</Badge>
                       </div>
                     </div>
                   </Card>
