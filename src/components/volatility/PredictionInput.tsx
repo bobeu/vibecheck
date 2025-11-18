@@ -43,7 +43,7 @@ const PredictionInput: React.FC<PredictionInputProps> = ({
           <TrendingUp className="h-6 w-6" />
           <div className="text-center">
             <div className="font-bold">Higher Volatility</div>
-            <div className="text-xs opacity-90">>{riskThreshold}% change</div>
+            <div className="text-xs opacity-90">{riskThreshold}% change</div>
             <div className="text-sm font-medium">0.1 cUSD</div>
           </div>
         </Button>
