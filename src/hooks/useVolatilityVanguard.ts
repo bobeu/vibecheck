@@ -40,10 +40,17 @@ export const useVolatilityVanguard = ({
   // Load pool data
   const loadPoolData = useCallback(async () => {
     try {
+      // Skip loading if using mock token address
+      if (tokenAddress === '0x0000000000000000000000000000000000000000') {
+        setPoolData(null);
+        return;
+      }
+      
       const data = await volatilityVanguardService.getPoolInfo(tokenAddress, vibrancyScore);
       setPoolData(data);
     } catch (error) {
-      console.error('Error loading pool data:', error);
+      console.warn('Error loading pool data (expected if contract not deployed):', error);
+      setPoolData(null);
     }
   }, [tokenAddress, vibrancyScore]);
 

@@ -264,8 +264,8 @@ const Home = () => {
                 {/* Volatility Vanguard Game */}
                 <VolatilityVanguard
                   tokenSymbol={selectedToken.symbol}
-                  tokenAddress="0x0000000000000000000000000000000000000000" // Mock address for demo
-                  vibrancyScore={quickScore.overallScore}
+                  tokenAddress={selectedToken.symbol === 'CELO' ? '0x471EcE3750Da237f93B8E339c536989b8978a438' : '0x0000000000000000000000000000000000000000'}
+                  vibrancyScore={quickScore?.overallScore || 0}
                   isVisible={!!quickScore}
                 />
 

@@ -1,7 +1,9 @@
 import { ethers } from 'ethers';
 import { getNetworkConfig } from './config';
+import contractArtifacts from '@/constants/contract-artifacts.json';
 import VolatilityVanguardABI from '../abis/VolatilityVanguardABI.json';
-import { VOLATILITY_VANGUARD_ADDRESS } from '../contracts/volatilityVanguardAddress';
+
+const VOLATILITY_VANGUARD_ADDRESS = contractArtifacts.contracts?.VolatilityVanguard?.address || '0x0000000000000000000000000000000000000000';
 
 export interface PredictionData {
   id: number;
@@ -176,8 +178,20 @@ class VolatilityVanguardService {
 
   async getPoolInfo(tokenAddress: string, vibrancyScore: number): Promise<PoolData | null> {
     try {
+      // Check if we have a valid contract address
+      if (VOLATILITY_VANGUARD_ADDRESS === '0x0000000000000000000000000000000000000000') {
+        console.warn('Contract not deployed yet, returning null pool data');
+        return null;
+      }
+      
       const contract = this.getContract();
       const impliedRiskLevel = mapScoreToImpliedRisk(vibrancyScore);
+      
+      // Validate token address
+      if (!ethers.utils.isAddress(tokenAddress) || tokenAddress === '0x0000000000000000000000000000000000000000') {
+        console.warn('Invalid token address provided:', tokenAddress);
+        return null;
+      }
       
       const result = await contract.getPoolInfo(tokenAddress, impliedRiskLevel);
       
@@ -199,7 +213,11 @@ class VolatilityVanguardService {
         lowerPercentage: total > 0 ? (lower / total) * 100 : 0
       };
     } catch (error) {
-      console.error('Get pool info error:', error);
+      console.warn('Get pool info error - this is expected if contract is not deployed:', {
+        contractAddress: VOLATILITY_VANGUARD_ADDRESS,
+        tokenAddress,
+        error: error.message
+      });
       return null;
     }
   }

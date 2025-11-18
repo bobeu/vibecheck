@@ -1,15 +1,16 @@
-import React from 'react';
-import { Target } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Target, Zap, Clock, TrendingUp, TrendingDown, CheckCircle, XCircle, AlertTriangle, Brain, Timer } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { mapScoreToImpliedRisk } from '@/lib/volatilityVanguardService';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useVolatilityVanguard } from '@/hooks/useVolatilityVanguard';
-
-// Modular Components
-import PredictionInput from '@/components/volatility/PredictionInput';
-import PoolStatistics from '@/components/volatility/PoolStatistics';
-import PredictionList from '@/components/volatility/PredictionList';
-import RiskAssessment from '@/components/volatility/RiskAssessment';
+import { useVolatilityPrediction } from '@/hooks/useVolatilityPrediction';
+import AIVolatilityAnalysis from './volatility/AIVolatilityAnalysis';
+import PredictionInput from './volatility/PredictionInput';
+import PoolStatistics from './volatility/PoolStatistics';
+import PredictionList from './volatility/PredictionList';
+import RiskAssessment from './volatility/RiskAssessment';
+import { mapScoreToImpliedRisk } from '@/lib/volatilityVanguardService';
 
 interface VolatilityVanguardProps {
   tokenSymbol: string;
@@ -24,70 +25,115 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
   vibrancyScore,
   isVisible
 }) => {
+  // Calculate implied risk level from VibeCheck score
+  const impliedRiskLevel = mapScoreToImpliedRisk(vibrancyScore);
+  
+  // Custom hooks for contract interaction and AI predictions
   const {
     poolData,
     userPredictions,
-    isLoading,
+    isLoading: contractLoading,
+    userAddress,
     placePrediction,
-    resolvePrediction
-  } = useVolatilityVanguard({
-    tokenAddress,
-    vibrancyScore
-  });
+    resolvePrediction,
+    refreshData
+  } = useVolatilityVanguard({ tokenAddress, vibrancyScore });
 
-  const impliedRiskLevel = mapScoreToImpliedRisk(vibrancyScore);
+  const {
+    prediction: aiPrediction,
+    isLoading: predictionLoading,
+    error: predictionError,
+    refreshPrediction
+  } = useVolatilityPrediction({ tokenSymbol, enabled: isVisible });
 
-  if (!isVisible) return null;
+  // Get active prediction for countdown
+  const activePrediction = useMemo(() => 
+    userPredictions.find(p => !p.resolved), [userPredictions]);
+
+  if (!isVisible) {
+    return null;
+  }
 
   return (
-    <Card className="p-6 bg-card/80 border-border/50 backdrop-blur-sm">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Target className="h-6 w-6 text-celo" />
-            <h2 className="text-2xl font-bold text-foreground">Volatility Vanguard</h2>
+    <Card className="mt-8 border-border/50 bg-card/80 backdrop-blur-sm">
+      <div className="p-6 border-b border-border/50">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 gradient-fusion rounded-lg shadow-glow">
+            <Target className="h-5 w-5 text-primary-foreground" />
           </div>
-          <p className="text-sm text-muted-foreground">
-            Predict {tokenSymbol}'s 7-day volatility • Win cUSD • Powered by AI Risk Assessment
-          </p>
+          <h2 className="text-xl font-bold text-foreground">Volatility Vanguard</h2>
         </div>
+        <p className="text-muted-foreground text-sm">
+          Predict {tokenSymbol}'s 7-day volatility with AI-powered insights
+        </p>
+      </div>
+
+      <div className="p-6 space-y-6">
+        {/* AI Volatility Analysis */}
+        <AIVolatilityAnalysis
+          prediction={aiPrediction}
+          isLoading={predictionLoading}
+          error={predictionError}
+          onRefresh={refreshPrediction}
+        />
 
         {/* Risk Assessment */}
-        <RiskAssessment 
+        <RiskAssessment
           vibrancyScore={vibrancyScore}
           impliedRiskLevel={impliedRiskLevel}
           tokenSymbol={tokenSymbol}
         />
 
-        <Tabs defaultValue="predict" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-muted/30">
-            <TabsTrigger value="predict">Make Prediction</TabsTrigger>
-            <TabsTrigger value="manage">My Predictions</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="predict" className="space-y-4 mt-4">
-            {/* Pool Statistics */}
+        {/* Pool Statistics */}
+        {poolData && (
+          <div>
+            <h3 className="font-semibold text-foreground mb-3">Current Betting Pool</h3>
             <PoolStatistics poolData={poolData} />
+          </div>
+        )}
 
-            {/* Prediction Input */}
-            <PredictionInput
-              vibrancyScore={vibrancyScore}
-              impliedRiskLevel={impliedRiskLevel}
-              isLoading={isLoading}
-              onPlacePrediction={placePrediction}
-            />
-          </TabsContent>
+        {/* Prediction Input */}
+        <PredictionInput
+          vibrancyScore={vibrancyScore}
+          impliedRiskLevel={impliedRiskLevel}
+          isLoading={contractLoading}
+          onPlacePrediction={placePrediction}
+        />
 
-          <TabsContent value="manage" className="space-y-4 mt-4">
-            <PredictionList
-              predictions={userPredictions}
-              isLoading={isLoading}
-              tokenSymbol={tokenSymbol}
-              onResolvePrediction={resolvePrediction}
-            />
-          </TabsContent>
-        </Tabs>
+        {/* Active Prediction Countdown */}
+        {activePrediction && (
+          <Card className="p-4 bg-celo/10 border-celo/30">
+            <div className="flex items-center gap-2 mb-2">
+              <Timer className="h-4 w-4 text-celo animate-pulse" />
+              <span className="font-semibold text-foreground">Active Prediction</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Your {activePrediction.predictedHigher ? 'Higher' : 'Lower'} prediction resolves in 7 days
+            </p>
+          </Card>
+        )}
+
+        {/* User Predictions History */}
+        <div>
+          <h3 className="font-semibold text-foreground mb-3">Your Predictions</h3>
+          <PredictionList
+            predictions={userPredictions}
+            isLoading={contractLoading}
+            tokenSymbol={tokenSymbol}
+            onResolvePrediction={resolvePrediction}
+          />
+        </div>
+
+        {/* How It Works */}
+        <Card className="p-4 bg-muted/20 border-border/50">
+          <h4 className="font-medium text-foreground mb-2">How It Works</h4>
+          <div className="text-sm text-muted-foreground space-y-1">
+            <p>• AI analyzes {tokenSymbol} and sets volatility thresholds</p>
+            <p>• Predict if 7-day volatility will be Higher or Lower</p>
+            <p>• Stake 0.1 cUSD per prediction via MiniPay</p>
+            <p>• Winners share the pool after 7 days</p>
+          </div>
+        </Card>
       </div>
     </Card>
   );

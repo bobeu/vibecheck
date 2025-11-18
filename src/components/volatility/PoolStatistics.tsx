@@ -7,10 +7,10 @@ interface PoolStatisticsProps {
 }
 
 const PoolStatistics: React.FC<PoolStatisticsProps> = ({ poolData }) => {
-  if (!poolData || poolData.poolId === 0) {
+  if (!poolData || poolData.poolId === 0 || poolData.totalAmount === '0') {
     return (
       <div className="text-center text-muted-foreground py-4">
-        <p className="text-sm">No active betting pool yet</p>
+        <p className="text-sm">Contract not deployed - Pool data unavailable</p>
         <p className="text-xs">Be the first to make a prediction!</p>
       </div>
     );
