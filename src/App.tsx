@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 
 import TokenSearch from '@/components/TokenSearch';
 import VibrancyScore from '@/components/VibrancyScore';
+import VolatilityVanguard from '@/components/VolatilityVanguard';
 import PaymentModal from '@/components/PaymentModal';
 import DetailedReport from '@/components/DetailedReport';
 import Watchlist from '@/components/Watchlist';
@@ -155,8 +156,8 @@ const Home = () => {
     <div className="min-h-screen gradient-bg">
       <div className="container max-w-md mx-auto px-4 py-6">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-2">
+        <div className="text-start mb-8">
+          <div className="flex items-center justify-start gap-2 mb-2">
             <div className="p-2 gradient-celo rounded-xl shadow-celo">
               <Zap className="h-6 w-6 text-primary-foreground" />
             </div>
@@ -259,6 +260,14 @@ const Home = () => {
                       : 'Add to Watchlist'}
                   </Button>
                 </div>
+
+                {/* Volatility Vanguard Game */}
+                <VolatilityVanguard
+                  tokenSymbol={selectedToken.symbol}
+                  tokenAddress="0x0000000000000000000000000000000000000000" // Mock address for demo
+                  vibrancyScore={quickScore.overallScore}
+                  isVisible={!!quickScore}
+                />
 
                 {/* Quick Insights Preview */}
                 {quickScore && (

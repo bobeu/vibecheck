@@ -1,0 +1,10 @@
+{
+  "chainId": 11142220,
+  "networkName": "celoTestnet",
+  "contracts": {
+    "VolatilityVanguard": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "abi": []
+    }
+  }
+}
