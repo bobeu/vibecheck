@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, AlertCircle, CheckCircle, Activity, Users, DollarSign, Whale } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertCircle, CheckCircle, Activity, Users, DollarSign, Pocket } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -142,7 +142,7 @@ const DetailedReport: React.FC<DetailedReportProps> = ({ report }) => {
           trend="neutral"
         />
         <MetricCard 
-          icon={Whale}
+          icon={Pocket}
           title="Distribution"
           value={100 - metrics.whaleConcentration}
           trend="neutral"

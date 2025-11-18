@@ -3,14 +3,16 @@ import { Target, Zap, Clock, TrendingUp, TrendingDown, CheckCircle, XCircle, Ale
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useVolatilityVanguard } from '@/hooks/useVolatilityVanguard';
+import { useWallet } from '@/hooks/useWallet';
+import { usePoolInfo, usePlacePrediction, useUserPredictions, contractUtils } from '@/hooks/useVolatilityContract';
 import { useVolatilityPrediction } from '@/hooks/useVolatilityPrediction';
 import AIVolatilityAnalysis from './volatility/AIVolatilityAnalysis';
 import PredictionInput from './volatility/PredictionInput';
 import PoolStatistics from './volatility/PoolStatistics';
 import PredictionList from './volatility/PredictionList';
 import RiskAssessment from './volatility/RiskAssessment';
-import { mapScoreToImpliedRisk } from '@/lib/volatilityVanguardService';
+import { useToast } from '@/hooks/use-toast';
+import { parseUnits } from 'viem';
 
 interface VolatilityVanguardProps {
   tokenSymbol: string;
@@ -26,18 +28,43 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
   isVisible
 }) => {
   // Calculate implied risk level from VibeCheck score
-  const impliedRiskLevel = mapScoreToImpliedRisk(vibrancyScore);
+  const impliedRiskLevel = contractUtils.mapScoreToRiskLevel(vibrancyScore);
+  const { toast } = useToast();
   
-  // Custom hooks for contract interaction and AI predictions
-  const {
-    poolData,
-    userPredictions,
-    isLoading: contractLoading,
-    userAddress,
-    placePrediction,
-    resolvePrediction,
-    refreshData
-  } = useVolatilityVanguard({ tokenAddress, vibrancyScore });
+  // Wagmi hooks
+  const { address, isConnected } = useWallet();
+  
+  // Contract interaction hooks
+  const { data: poolData, isLoading: poolLoading, refetch: refetchPool } = usePoolInfo(tokenAddress, impliedRiskLevel);
+  const { data: userPredictionIds, isLoading: predictionsLoading, refetch: refetchPredictions } = useUserPredictions(address);
+  const { execute: placePrediction, isLoading: isPlacing } = usePlacePrediction();
+  
+  // Format pool data
+  const formattedPoolData = useMemo(() => {
+    if (!poolData) return null;
+    return contractUtils.formatPoolData(poolData);
+  }, [poolData]);
+
+  // Handle prediction placement
+  const handlePlacePrediction = useCallback(async (predictedHigher: boolean) => {
+    if (!isConnected) {
+      toast({
+        title: "Wallet Required",
+        description: "Please connect your wallet to place a prediction"
+      });
+      return;
+    }
+
+    try {
+      await placePrediction([tokenAddress, impliedRiskLevel, predictedHigher], parseUnits('0.1', 18));
+      
+      // Refresh data after successful transaction
+      refetchPool();
+      refetchPredictions();
+    } catch (error) {
+      // Error handling is done in the useContractWrite hook
+    }
+  }, [isConnected, placePrediction, tokenAddress, impliedRiskLevel, toast, refetchPool, refetchPredictions]);
 
   const {
     prediction: aiPrediction,
@@ -45,10 +72,6 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
     error: predictionError,
     refreshPrediction
   } = useVolatilityPrediction({ tokenSymbol, enabled: isVisible });
-
-  // Get active prediction for countdown
-  const activePrediction = useMemo(() => 
-    userPredictions.find(p => !p.resolved), [userPredictions]);
 
   if (!isVisible) {
     return null;

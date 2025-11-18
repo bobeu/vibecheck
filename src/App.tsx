@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { WagmiProvider } from 'wagmi';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Zap, Star, Search, ArrowLeft, Eye, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,6 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
+import { wagmiConfig } from '@/lib/wagmi';
+import WalletConnect from '@/components/WalletConnect';
+
+// Create a query client for Wagmi
+const queryClient = new QueryClient()
 
 import TokenSearch from '@/components/TokenSearch';
 import VibrancyScore from '@/components/VibrancyScore';
@@ -39,6 +46,12 @@ const Home = () => {
       checkReportAccess();
     }
   }, [selectedToken]);
+
+  // Remove old wallet service references since we're using Wagmi now
+  useEffect(() => {
+    // No longer need to initialize the old wallet service
+    // Wagmi handles wallet connection state automatically
+  }, []);
 
   const loadWatchlist = async () => {
     const items = await paymentService.getWatchlist();
@@ -160,6 +173,9 @@ const Home = () => {
           <div className="flex items-center justify-start gap-2 mb-2">
             <div className="p-2 gradient-celo rounded-xl shadow-celo">
               <Zap className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <div className="ml-auto">
+              <WalletConnect />
             </div>
             <h1 className="text-2xl font-bold text-celo glow-text">VibeCheck</h1>
           </div>

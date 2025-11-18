@@ -7,7 +7,7 @@ interface PredictionInputProps {
   vibrancyScore: number;
   impliedRiskLevel: number;
   isLoading: boolean;
-  onPlacePrediction: (predictedHigher: boolean) => void;
+  onPlacePrediction: (predictedHigher: boolean) => Promise<void>;
 }
 
 const PredictionInput: React.FC<PredictionInputProps> = ({

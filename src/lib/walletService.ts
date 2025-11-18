@@ -92,14 +92,24 @@ export class WalletService {
 
     async connectWallet() {
         if (!window.ethereum) {
-            this.showToast("Error", "Please install MetaMask!");
+            this.showToast("Wallet Required", "Please use MiniPay or install a Celo-compatible wallet");
             return;
         }
 
         this.updateState({ isConnecting: true });
         try {
             await this.checkNetwork();
-            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            
+            // Check if wallet supports account requests
+            if (!window.ethereum.request) {
+                throw new Error("Wallet does not support account requests");
+            }
+            
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            
+            if (!accounts || accounts.length === 0) {
+                throw new Error("No accounts found. Please connect your wallet first.");
+            }
             
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const address = await provider.getSigner().getAddress();
@@ -109,10 +119,25 @@ export class WalletService {
             await this.fetchBalance(address);
 
             localStorage.removeItem('wallet_disconnect_requested');
-            this.showToast("Success", "Wallet connected successfully!");
+            this.showToast("Success", "Wallet connected successfully to Celo network!");
             
         } catch (error: any) {
-            this.showToast("Error", error.message || "Failed to connect wallet");
+            console.warn("Wallet connection failed:", error);
+            
+            // Provide more specific error messages
+            let errorMessage = "Failed to connect wallet";
+            
+            if (error.code === 4001) {
+                errorMessage = "Wallet connection was rejected by user";
+            } else if (error.message?.includes("No accounts")) {
+                errorMessage = "No wallet accounts found. Please unlock your wallet.";
+            } else if (error.message?.includes("does not support")) {
+                errorMessage = "Please use MiniPay or a Celo-compatible wallet";
+            } else if (error.message?.includes("network")) {
+                errorMessage = "Please switch to Celo network in your wallet";
+            }
+            
+            this.showToast("Connection Failed", errorMessage);
         } finally {
             this.updateState({ isConnecting: false });
         }

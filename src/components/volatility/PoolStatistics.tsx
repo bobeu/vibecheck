@@ -7,7 +7,7 @@ interface PoolStatisticsProps {
 }
 
 const PoolStatistics: React.FC<PoolStatisticsProps> = ({ poolData }) => {
-  if (!poolData || poolData.poolId === 0 || poolData.totalAmount === '0') {
+  if (!poolData || poolData.poolId === 0 || poolData.totalAmount === 0) {
     return (
       <div className="text-center text-muted-foreground py-4">
         <p className="text-sm">Contract not deployed - Pool data unavailable</p>
@@ -20,7 +20,7 @@ const PoolStatistics: React.FC<PoolStatisticsProps> = ({ poolData }) => {
     <div className="space-y-4">
       <div className="text-center">
         <div className="text-3xl font-bold text-celo glow-text">
-          {parseFloat(poolData.totalAmount).toFixed(2)}
+          {poolData.totalAmount.toFixed(2)}
         </div>
         <div className="text-sm text-muted-foreground">Total Pool (cUSD)</div>
       </div>
@@ -46,8 +46,8 @@ const PoolStatistics: React.FC<PoolStatisticsProps> = ({ poolData }) => {
       </div>
 
       <div className="flex justify-between text-xs text-muted-foreground">
-        <span>Higher: {poolData.higherAmount} cUSD</span>
-        <span>Lower: {poolData.lowerAmount} cUSD</span>
+        <span>Higher: {poolData.higherAmount.toFixed(2)} cUSD</span>
+        <span>Lower: {poolData.lowerAmount.toFixed(2)} cUSD</span>
       </div>
     </div>
   );
