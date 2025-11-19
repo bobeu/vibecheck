@@ -183,3 +183,9 @@ High-volume data acquisition from social platform APIs (like Farcaster) can hit 
 Monetization & Economy
 
 The prediction market needs a sustainable economy (points, rewards).
+
+5. Business model
+
+Vibecheck operates as a decentralized prediction market platform, enabling users to speculate on real-world outcomes and asset volatility using crypto assets such as cUSD.
+
+The core business model is built around generating revenue through transaction fees (a percentage fee or 'rake') levied on successful predictions and market settlements. By hosting various structured prediction pools—ranging from low-volatility, lower-risk bets to high-stakes forecasts—the platform drives high user engagement and volume. Vibecheck is essentially monetizing the infrastructure layer for on-chain forecasting, earning a small fee from every fund staked and successfully paid out. This fee structure ensures profitability scales directly with the platform's liquidity and user trading activity.
