@@ -1,0 +1,245 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* VibeCheck Production - Celo Yellow & MiniPay Green Aesthetic */
+
+@layer base {
+  :root {
+    /* Dark theme foundation */
+    --background: 220 13% 9%;
+    --foreground: 220 9% 95%;
+
+    /* Celo Yellow - Primary accent for CTAs and highlights */
+    --celo-yellow: 61 100% 65%;
+    --celo-yellow-bright: 61 100% 70%;
+    --celo-yellow-muted: 61 85% 55%;
+
+    /* MiniPay Green - Secondary accent for positive indicators */
+    --minipay-green: 145 69% 53%;
+    --minipay-green-light: 145 69% 63%;
+    --minipay-green-dark: 145 69% 43%;
+
+    /* Primary system using Celo Yellow */
+    --primary: 61 100% 65%;
+    --primary-foreground: 220 13% 9%;
+    --primary-light: 61 100% 70%;
+    --primary-glow: 61 100% 75%;
+
+    /* Secondary system using MiniPay Green */
+    --secondary: 145 69% 53%;
+    --secondary-foreground: 220 13% 9%;
+    --secondary-light: 145 69% 63%;
+    --secondary-dark: 145 69% 43%;
+
+    /* Accent colors for scoring */
+    --accent: 61 100% 65%;
+    --accent-foreground: 220 13% 9%;
+    --accent-green: 145 69% 53%;
+    --accent-orange: 25 95% 55%;
+    --accent-red: 0 85% 60%;
+
+    /* Dark neutral system */
+    --muted: 220 13% 15%;
+    --muted-foreground: 220 9% 60%;
+    --card: 220 13% 12%;
+    --card-foreground: 220 9% 95%;
+    --border: 220 13% 20%;
+    --input: 220 13% 18%;
+    --ring: 61 100% 65%;
+
+    /* Popover and UI elements */
+    --popover: 220 13% 12%;
+    --popover-foreground: 220 9% 95%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 220 9% 95%;
+
+    --radius: 12px;
+
+    /* VibeCheck Production Gradients */
+    --gradient-celo: linear-gradient(
+      135deg,
+      hsl(var(--celo-yellow)) 0%,
+      hsl(var(--celo-yellow-bright)) 100%
+    );
+    --gradient-minipay: linear-gradient(
+      135deg,
+      hsl(var(--minipay-green)) 0%,
+      hsl(var(--minipay-green-light)) 100%
+    );
+    --gradient-fusion: linear-gradient(
+      135deg,
+      hsl(var(--celo-yellow)) 0%,
+      hsl(var(--minipay-green)) 100%
+    );
+    --gradient-success: linear-gradient(
+      135deg,
+      hsl(var(--minipay-green)) 0%,
+      hsl(var(--minipay-green-light)) 100%
+    );
+    --gradient-warning: linear-gradient(
+      135deg,
+      hsl(var(--accent-orange)) 0%,
+      hsl(var(--celo-yellow)) 100%
+    );
+    --gradient-danger: linear-gradient(
+      135deg,
+      hsl(var(--accent-red)) 0%,
+      hsl(25 85% 55%) 100%
+    );
+    --gradient-bg: linear-gradient(
+      180deg,
+      hsl(var(--background)) 0%,
+      hsl(220 13% 7%) 100%
+    );
+
+    /* Scoring system colors */
+    --score-excellent: 145 69% 53%;
+    --score-good: 61 100% 65%;
+    --score-fair: 45 95% 60%;
+    --score-poor: 25 95% 55%;
+    --score-critical: 0 85% 60%;
+
+    /* Vibrant shadows and effects */
+    --shadow-celo: 0 4px 20px -4px hsl(var(--celo-yellow) / 0.25);
+    --shadow-minipay: 0 4px 20px -4px hsl(var(--minipay-green) / 0.25);
+    --shadow-glow: 0 0 40px hsl(var(--celo-yellow) / 0.3);
+    --shadow-data: 0 8px 32px -8px hsl(var(--minipay-green) / 0.2);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background: var(--gradient-bg);
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+    min-height: 100vh;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--gradient-celo);
+    border-radius: 4px;
+  }
+}
+
+/* Component-specific utilities */
+@layer utilities {
+  .gradient-celo {
+    background: var(--gradient-celo);
+  }
+
+  .gradient-minipay {
+    background: var(--gradient-minipay);
+  }
+
+  .gradient-fusion {
+    background: var(--gradient-fusion);
+  }
+
+  .gradient-success {
+    background: var(--gradient-success);
+  }
+
+  .gradient-warning {
+    background: var(--gradient-warning);
+  }
+
+  .gradient-danger {
+    background: var(--gradient-danger);
+  }
+
+  .gradient-bg {
+    background: var(--gradient-bg);
+  }
+
+  .shadow-celo {
+    box-shadow: var(--shadow-celo);
+  }
+
+  .shadow-minipay {
+    box-shadow: var(--shadow-minipay);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .shadow-data {
+    box-shadow: var(--shadow-data);
+  }
+
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+
+  .transition-bounce {
+    transition: var(--transition-bounce);
+  }
+
+  /* Score-based text colors */
+  .text-score-excellent {
+    color: hsl(var(--score-excellent));
+  }
+
+  .text-score-good {
+    color: hsl(var(--score-good));
+  }
+
+  .text-score-fair {
+    color: hsl(var(--score-fair));
+  }
+
+  .text-score-poor {
+    color: hsl(var(--score-poor));
+  }
+
+  .text-score-critical {
+    color: hsl(var(--score-critical));
+  }
+
+  .text-celo {
+    color: hsl(var(--celo-yellow));
+  }
+
+  .text-minipay {
+    color: hsl(var(--minipay-green));
+  }
+
+  /* Animated effects */
+  .pulse-celo {
+    animation: pulse-celo 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-celo {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 20px hsl(var(--celo-yellow) / 0.3);
+    }
+    50% {
+      opacity: 0.9;
+      box-shadow: 0 0 40px hsl(var(--celo-yellow) / 0.5);
+    }
+  }
+
+  .glow-text {
+    text-shadow: 0 0 10px hsl(var(--celo-yellow) / 0.5);
+  }
+}
+
