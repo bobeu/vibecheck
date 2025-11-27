@@ -6,8 +6,10 @@ const path = require('path');
  * Syncs deployment artifacts from Hardhat to frontend application
  */
 async function syncArtifacts() {
-  const networkName = hre.network.name;
-  const chainId = hre.network.config.chainId;
+  const networkName = 'sepolia';
+  const chainId = 11142220;
+  // const networkName = 'sepolia';
+  // const chainId = 11142220;
   
   console.log(`🔄 Syncing artifacts for network: ${networkName} (Chain ID: ${chainId})`);
   

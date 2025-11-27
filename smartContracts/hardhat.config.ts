@@ -14,8 +14,6 @@ const config: HardhatUserConfig = {
       url: "https://forno.celo-sepolia.celo-testnet.org",
       accounts: [`${process.env.PRIVATE_0xD7c}`],
       chainId: 11_142220,
-      gas: 8000000,
-      gasPrice: 1000000000,
       saveDeployments: true
     },
     celo: {
@@ -63,6 +61,16 @@ const config: HardhatUserConfig = {
   },
   namedAccounts: {
     deployer: {
+      default: 0,
+      11142220: `privatekey://${process.env.PRIVATE_0xD7c}`,
+      42220: `privatekey://${process.env.PRIVATE_farc}`,
+    },
+    feeReceiver: {
+      default: 0,
+      11142220: `privatekey://${process.env.PRIVATE_0xD7c}`,
+      42220: `privatekey://${process.env.PRIVATE_farc}`,
+    },
+    oracleAddress: {
       default: 0,
       11142220: `privatekey://${process.env.PRIVATE_0xD7c}`,
       42220: `privatekey://${process.env.PRIVATE_farc}`,

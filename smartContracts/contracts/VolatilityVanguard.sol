@@ -80,7 +80,7 @@ contract VolatilityVanguard is ReentrancyGuard, Ownable {
         uint256 _feeRate,
         uint256 _riskThreshold,
         uint256 _lockTime
-    ) Ownable(msg.sender) {
+    ) Ownable(_msgSender()) {
         require(_oracleAddress != address(0), "Invalid oracle address");
         require(_feeReceiver != address(0), "Invalid fee receiver address");
         require(_feeRate <= 10000, "Fee rate cannot exceed 100%");
