@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Star, Search, ArrowLeft, Eye, Plus } from 'lucide-react';
+import { Star, Search, ArrowLeft, Eye, Plus, Settings } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,8 +15,10 @@ import VolatilityVanguard from '@/components/VolatilityVanguard';
 import PaymentModal from '@/components/PaymentModal';
 import DetailedReport from '@/components/DetailedReport';
 import Watchlist from '@/components/Watchlist';
+import AdminPanel from '@/components/AdminPanel';
 import { vibeService, type TokenInfo, type VibrancyData, type DetailedReport as ReportType } from '@/lib/vibeService';
 import { paymentService } from '@/lib/paymentService';
+import { isMiniPay, isFarcaster, isExternalWallet } from '@/lib/wagmi';
 
 const Home = () => {
   const { toast } = useToast();
@@ -28,6 +30,7 @@ const Home = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [hasReportAccess, setHasReportAccess] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   useEffect(() => {
     loadWatchlist();
@@ -175,15 +178,30 @@ const Home = () => {
             <p className="text-center text-xs sm:text-sm font-medium leading-relaxed">
               <span className="text-foreground/90">AI-Powered Crypto Project Viability</span>
               <span className="mx-2 text-celo/60">•</span>
-              <span className="text-celo font-semibold">Celo MiniPay</span>
+              <span className="text-celo font-semibold">
+                {isMiniPay() ? 'Celo MiniPay' : isFarcaster() ? 'Celo Farcaster' : isExternalWallet() ? 'Celo MetaMask' : 'Celo MiniPay'}
+              </span>
             </p>
           </div>
         </div>
 
         {/* Main Content */}
-        {!selectedToken ? (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-muted/30">
+        {showAdminPanel ? (
+          <div className="w-full space-y-4">
+            <AdminPanel onBack={() => setShowAdminPanel(false)} />
+          </div>
+        ) : !selectedToken ? (
+          <div className="w-full space-y-4">
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => setShowAdminPanel(true)}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Admin Panel
+            </Button>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-muted/30">
               <TabsTrigger value="search" className="data-[state=active]:bg-celo data-[state=active]:text-primary-foreground">
                 <Search className="h-4 w-4 mr-2" />
                 Search
@@ -202,6 +220,7 @@ const Home = () => {
               <Watchlist onTokenSelect={handleTokenSelect} />
             </TabsContent>
           </Tabs>
+          </div>
         ) : (
           <div className="space-y-6">
             {/* Back Button */}
@@ -318,6 +337,7 @@ const App = () => {
     <>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/admin" element={<AdminPanel />} />
       </Routes>
       <Toaster />
     </>

@@ -162,12 +162,90 @@ describe("VolatilityVanguard", function () {
         account: owner.account
       });
       
+      // Advance time past lockTime to allow starting new round
+      await time.increase(LOCK_TIME + 1);
+      
       await volatilityVanguard.write.startNewRound({
         account: owner.account
       });
       
       const roundId = await volatilityVanguard.read.currentRoundId();
       expect(roundId).to.equal(2n);
+    });
+
+    it("Should prevent starting new round when current round is still open (lockTime not elapsed)", async function () {
+      // Start first round
+      await volatilityVanguard.write.startNewRound({
+        account: owner.account
+      });
+      
+      // Try to start second round immediately (lockTime not elapsed)
+      await expect(
+        volatilityVanguard.write.startNewRound({
+          account: owner.account
+        })
+      ).to.be.rejectedWith(/Cannot start new round: current round is still open/);
+      
+      // Verify currentRoundId is still 1
+      const roundId = await volatilityVanguard.read.currentRoundId();
+      expect(roundId).to.equal(1n);
+    });
+
+    it("Should allow starting new round when lockTime has elapsed", async function () {
+      // Start first round
+      await volatilityVanguard.write.startNewRound({
+        account: owner.account
+      });
+      
+      // Advance time past lockTime
+      await time.increase(LOCK_TIME + 1);
+      
+      // Now should be able to start new round
+      await volatilityVanguard.write.startNewRound({
+        account: owner.account
+      });
+      
+      const roundId = await volatilityVanguard.read.currentRoundId();
+      expect(roundId).to.equal(2n);
+    });
+
+    it("Should allow starting new round when current round is settled", async function () {
+      // Start first round
+      await volatilityVanguard.write.startNewRound({
+        account: owner.account
+      });
+      
+      // Place a prediction
+      await volatilityVanguard.write.placePrediction([1n, true], {
+        account: user1.account,
+        value: parseEther("1")
+      });
+      
+      // Advance time past lockTime
+      await time.increase(LOCK_TIME + 1);
+      
+      // Settle the round
+      await volatilityVanguard.write.settleRound([1n, 1], {
+        account: oracle.account
+      });
+      
+      // Now should be able to start new round even without waiting
+      await volatilityVanguard.write.startNewRound({
+        account: owner.account
+      });
+      
+      const roundId = await volatilityVanguard.read.currentRoundId();
+      expect(roundId).to.equal(2n);
+    });
+
+    it("Should allow starting first round (currentRoundId == 0)", async function () {
+      // First round should always be allowed
+      await volatilityVanguard.write.startNewRound({
+        account: owner.account
+      });
+      
+      const roundId = await volatilityVanguard.read.currentRoundId();
+      expect(roundId).to.equal(1n);
     });
   });
 
@@ -285,10 +363,16 @@ describe("VolatilityVanguard", function () {
     });
 
     it("Should revert when round is not current", async function () {
+      // beforeEach already started round 1
+      // Advance time past lockTime to allow starting new round
+      await time.increase(LOCK_TIME + 1);
+      
+      // Start round 2, making round 1 not current
       await volatilityVanguard.write.startNewRound({
         account: owner.account
       });
       
+      // Try to place prediction on round 1 (should fail - not current)
       await expect(
         volatilityVanguard.write.placePrediction([1n, true], {
           account: user1.account,
@@ -927,6 +1011,9 @@ describe("VolatilityVanguard", function () {
         account: user1.account,
         value: parseEther("1")
       });
+      
+      // Advance time past lockTime to allow starting new round
+      await time.increase(LOCK_TIME + 1);
       
       await volatilityVanguard.write.startNewRound({
         account: owner.account

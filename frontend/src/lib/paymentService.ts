@@ -1,9 +1,10 @@
+import { getMockCUSDAddress } from '@/contracts/mockCUSD';
 import { firebaseService } from './firebaseService';
-import { wagmiConfig } from './wagmi';
-import { getAccount, getWalletClient, getPublicClient } from '@wagmi/core';
+import { isExternalWallet } from './wagmi';
+import { getPublicClient } from '@wagmi/core';
 import { readContract, writeContract, waitForTransactionReceipt, simulateContract } from '@wagmi/core';
 import { erc20Abi, parseUnits, formatUnits, type Address, zeroAddress } from 'viem';
-import { getNetworkConfig } from './config';
+import { type Config } from "wagmi";
 
 // Production-ready payment service for cUSD transactions
 export interface PaymentResult {
@@ -19,15 +20,38 @@ export interface WatchlistItem {
   isPremiumSlot?: boolean;
 }
 
+export interface NetworkProps {
+  chainId: number;
+  account: Address;
+  config: Config;
+}
+
+export interface PurchaseReport extends NetworkProps {
+  tokenSymbol: string;
+}
+
 class PaymentService {
-  private mockDelay = (ms: number = 3000) => 
-    new Promise(resolve => setTimeout(resolve, ms));
+  // private mockDelay = (ms: number = 3000) => 
+    // new Promise(resolve => setTimeout(resolve, ms));
+
+  // Check if we should use mock cUSD (for external wallets in development)
+  private shouldUseMockCUSD(): boolean {
+    return isExternalWallet();
+  }
 
   // Production cUSD payment for reports (1 cUSD)
-  async purchaseReport(tokenSymbol: string): Promise<PaymentResult> {
+  async purchaseReport(
+    {
+      account,
+      chainId,
+      config,
+      tokenSymbol
+    }: PurchaseReport
+  ): Promise<PaymentResult> {
     try {
-      // Use actual MiniPay/cUSD payment
-      const paymentResult = await this.processCUSDPayment(1, 'report_purchase');
+      // Use mock cUSD if in external wallet context, otherwise use real cUSD
+      // const paymentResult = await this.processCUSDPayment(1, 'report_purchase');
+      const paymentResult = await this.processCUSDPayment(1, chainId, account, config);
       
       if (paymentResult.success && paymentResult.transactionHash) {
         // Store in Firebase
@@ -45,10 +69,10 @@ class PaymentService {
   }
 
   // Production premium watchlist purchase (3 cUSD)
-  async purchasePremiumWatchlist(): Promise<PaymentResult> {
+  async purchasePremiumWatchlist({ chainId, account, config }: NetworkProps): Promise<PaymentResult> {
     try {
-      // Use actual MiniPay/cUSD payment
-      const paymentResult = await this.processCUSDPayment(3, 'premium_watchlist');
+      // Use mock cUSD if in external wallet context, otherwise use real cUSD
+      const paymentResult = await this.processCUSDPayment(3, chainId, account, config);
       
       if (paymentResult.success && paymentResult.transactionHash) {
         // Enable premium in Firebase
@@ -65,8 +89,124 @@ class PaymentService {
     }
   }
 
+  // Mint mock cUSD for testing (only available in external wallet context)
+  async mintMockCUSD(config: Config, account: Address, amount: number = 100): Promise<PaymentResult> {
+    try {
+      // Only work on client side
+      if (typeof window === 'undefined') {
+        return {
+          success: false,
+          error: 'Mint service is only available in the browser'
+        };
+      }
+
+      // Only allow minting in external wallet context (development mode)
+      if (!this.shouldUseMockCUSD()) {
+        return {
+          success: false,
+          error: 'Mock cUSD minting is only available in external wallet context (development mode)'
+        };
+      }
+
+      const publicClient = getPublicClient(config);
+      if (!publicClient) {
+        return {
+          success: false,
+          error: 'Unable to connect to blockchain. Please check your network connection.'
+        };
+      }
+
+      const chainId = await publicClient.getChainId();
+      const mockCUSDAddress = getMockCUSDAddress(chainId);
+
+      if(!mockCUSDAddress) {
+        return {
+          success: false,
+          error: `Mock cUSD contract not configured for this network (Chain ID: ${chainId}). Please deploy a MockERC20 contract or set NEXT_PUBLIC_MOCK_CUSD_ADDRESS_${chainId === 11142220 ? 'SEPOLIA' : 'MAINNET'} environment variable.`
+        };
+      }
+
+      const amountInWei = parseUnits(amount.toString(), 18);
+
+      // MockERC20 ABI - includes mint function
+      const mockERC20Abi = [
+        ...erc20Abi,
+        {
+          name: 'mint',
+          type: 'function',
+          stateMutability: 'nonpayable',
+          inputs: [
+            { name: 'to', type: 'address' },
+            { name: 'amount', type: 'uint256' }
+          ],
+          outputs: []
+        }
+      ] as const;
+
+      // Simulate the mint transaction
+      try {
+        await simulateContract(config, {
+          address: mockCUSDAddress as Address,
+          abi: mockERC20Abi,
+          functionName: 'mint',
+          args: [account, amountInWei],
+          account: account,
+        });
+      } catch (simulateError: any) {
+        console.error('Mint simulation failed:', simulateError);
+        return {
+          success: false,
+          error: simulateError?.message || 'Failed to simulate mint transaction. Please check the mock cUSD contract.'
+        };
+      }
+
+      // Execute the mint
+      const hash = await writeContract(config, {
+        address: mockCUSDAddress as Address,
+        abi: mockERC20Abi,
+        functionName: 'mint',
+        args: [account, amountInWei],
+        account: account,
+      });
+
+      // Wait for transaction receipt
+      const receipt = await Promise.race([
+        waitForTransactionReceipt(config, { hash }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Transaction timeout')), 120000)
+        )
+      ]) as any;
+
+      if (receipt && receipt.status === 'success') {
+        return {
+          success: true,
+          transactionHash: hash
+        };
+      } else {
+        return {
+          success: false,
+          error: 'Mint transaction failed or was reverted'
+        };
+      }
+    } catch (error: any) {
+      console.error('Mock cUSD mint error:', error);
+      
+      if (error?.message?.includes('User rejected')) {
+        return {
+          success: false,
+          error: 'Transaction was rejected by user'
+        };
+      }
+
+      return {
+        success: false,
+        error: error?.message || 'Failed to mint mock cUSD. Please try again.'
+      };
+    }
+  }
+
   // Production cUSD payment implementation
-  private async processCUSDPayment(amount: number, purpose: string): Promise<PaymentResult> {
+  private async processCUSDPayment(amount: number, chainId: number, account: Address, config: Config): Promise<PaymentResult> {
     try {
       // Only work on client side
       if (typeof window === 'undefined') {
@@ -77,43 +217,45 @@ class PaymentService {
       }
 
       // 1. Validate user has sufficient cUSD balance
-      const account = getAccount(wagmiConfig);
-      if (!account.address) {
+      if (account === zeroAddress) {
         return {
           success: false,
           error: 'Please connect your wallet to make a payment'
         };
       }
-
-      const userAddress = account.address as Address;
+            
+      // Determine if we should use mock cUSD (for external wallets in development)
+      const useMockCUSD = this.shouldUseMockCUSD();
       
-      // Get the actual chain ID from the connected account
-      const publicClient = getPublicClient(wagmiConfig);
-      if (!publicClient) {
-        return {
-          success: false,
-          error: 'Unable to connect to blockchain. Please check your network connection.'
-        };
-      }
-      
-      const chainId = await publicClient.getChainId();
-      
-      // Get cUSD token address based on actual connected network
-      // Celo Mainnet (42220): 0x765DE816845861e75A25fCA122bb6898B8B1282a
-      // Celo Sepolia Testnet (11142220): 0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1
-      // Celo Alfajores Testnet (44787): 0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1 (same as Sepolia)
+      // Get cUSD token address based on context and network
       let cUSDAddress: Address;
-      if (chainId === 42220) {
-        // Celo Mainnet
-        cUSDAddress = '0x765DE816845861e75A25fCA122bb6898B8B1282a' as Address;
-      } else if (chainId === 11142220 || chainId === 44787) {
-        // Celo Sepolia or Alfajores Testnet
-        cUSDAddress = '0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1' as Address;
+      if (useMockCUSD) {
+        // Use mock cUSD for external wallets (development mode)
+        const mockAddress = getMockCUSDAddress(chainId);
+        if(!mockAddress) {
+          return {
+            success: false,
+            error: `Mock cUSD contract not configured for this network (Chain ID: ${chainId}). Please deploy a MockERC20 contract or set the appropriate environment variable.`
+          };
+        }
+        cUSDAddress = mockAddress as Address;
       } else {
-        return {
-          success: false,
-          error: `Unsupported network (Chain ID: ${chainId}). Please switch to Celo Mainnet or Celo Testnet.`
-        };
+        // Use real cUSD for MiniPay/Farcaster (production)
+        // Celo Mainnet (42220): 0x765DE816845861e75A25fCA122bb6898B8B1282a
+        // Celo Sepolia Testnet (11142220): 0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1
+        if (chainId === 42220) {
+          // Celo Mainnet
+          cUSDAddress = '0x765DE816845861e75A25fCA122bb6898B8B1282a' as Address;
+        } else if (chainId === 11142220) {
+          // Celo Sepolia Testnet
+          // cUSDAddress = '0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1' as Address;
+          cUSDAddress = '0xb18c9d7d5c6cd917bb0aa96c588116051b41c41a' as Address;
+        } else {
+          return {
+            success: false,
+            error: `Unsupported network (Chain ID: ${chainId}). Please switch to Celo Mainnet or Celo Sepolia Testnet.`
+          };
+        }
       }
 
       const amountInWei = parseUnits(amount.toString(), 18);
@@ -122,11 +264,11 @@ class PaymentService {
       // Check cUSD balance with error handling
       let balance: bigint;
       try {
-        balance = await readContract(wagmiConfig, {
+        balance = await readContract(config, {
           address: cUSDAddress,
           abi: erc20Abi,
           functionName: 'balanceOf',
-          args: [userAddress],
+          args: [account],
         }) as bigint;
       } catch (error: any) {
         console.error('Failed to read cUSD balance:', error);
@@ -152,20 +294,19 @@ class PaymentService {
         };
       }
 
-      // 2. Initiate transaction with feeCurrency: cUSD
-      // Get wallet client for transaction
-      const walletClient = await getWalletClient(wagmiConfig);
-      if (!walletClient) {
+      // Get public client for transaction
+      const publicClient = await getPublicClient(config);
+      if (!publicClient) {
         return {
           success: false,
-          error: 'Wallet client not available. Please ensure your wallet is connected.'
+          error: 'Public client not available. Please ensure your wallet is connected.'
         };
       }
 
       // Payment recipient address - using a payment contract or treasury address
-      // For now, using a placeholder - in production, this should be your payment contract address
-      const paymentRecipient = process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS as Address || zeroAddress;
-
+      // For mock cUSD in development, we can use zero address or a test address
+      // For real cUSD, use the configured payment recipient
+      let paymentRecipient = process.env.NEXT_PUBLIC_PAYMENT_RECIPIENT_ADDRESS as Address;
       if (paymentRecipient === zeroAddress) {
         console.warn('Payment recipient address not configured. Using default address.');
         // In production, you should have a proper payment recipient address
@@ -177,12 +318,13 @@ class PaymentService {
 
       // Simulate the transaction first
       try {
-        await simulateContract(wagmiConfig, {
+        console.log('paymentRecipient', paymentRecipient)
+        await simulateContract(config, {
           address: cUSDAddress,
           abi: erc20Abi,
           functionName: 'transfer',
           args: [paymentRecipient, amountInWei],
-          account: userAddress,
+          account: account,
         });
       } catch (simulateError: any) {
         console.error('Transaction simulation failed:', simulateError);
@@ -209,12 +351,12 @@ class PaymentService {
       }
 
       // Execute the transfer
-      const hash = await writeContract(wagmiConfig, {
+      const hash = await writeContract(config, {
         address: cUSDAddress,
         abi: erc20Abi,
         functionName: 'transfer',
         args: [paymentRecipient, amountInWei],
-        account: userAddress,
+        account,
       });
 
       // 3. Monitor transaction confirmation
@@ -228,7 +370,7 @@ class PaymentService {
 
       // Wait for transaction receipt with timeout
       const receipt = await Promise.race([
-        waitForTransactionReceipt(wagmiConfig, { hash }),
+        waitForTransactionReceipt(config, { hash }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Transaction timeout')), 120000) // 2 minute timeout
         )

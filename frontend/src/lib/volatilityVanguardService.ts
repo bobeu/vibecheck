@@ -1,9 +1,9 @@
-// @ts-ignore - ethers types may not be fully recognized by TypeScript
-import { ethers } from 'ethers';
-import { getNetworkConfig } from './config';
+import type { Config } from 'wagmi';
+import { readContract, writeContract, waitForTransactionReceipt } from 'wagmi/actions';
+import { getAccount, getPublicClient } from '@wagmi/core';
 import contractArtifacts from '@/constants/contract-artifacts.json';
 import VolatilityVanguardABI from '../abis/VolatilityVanguardABI.json';
-import { zeroAddress, parseEther, formatEther } from 'viem';
+import { zeroAddress, parseEther, formatEther, type Address } from 'viem';
 
 const VOLATILITY_VANGUARD_ADDRESS = contractArtifacts.contracts?.VolatilityVanguard?.address || zeroAddress;
 
@@ -26,39 +26,30 @@ export interface UserPrediction {
   hasClaimedReward: boolean;
 }
 
-class VolatilityVanguardService {
-  private contract: ethers.Contract | null = null;
-  private provider: ethers.providers.JsonRpcProvider | null = null;
+export interface PoolData {
+  poolId: number;
+  totalAmount: number;
+  higherAmount: number;
+  lowerAmount: number;
+  resolved: boolean;
+  higherPercentage: number;
+  lowerPercentage: number;
+}
 
-  constructor() {
-    // Only initialize provider on client side
-    if (typeof window !== 'undefined') {
-      const config = getNetworkConfig();
-      this.provider = new ethers.providers.JsonRpcProvider(config.rpcUrl);
-    }
-  }
+export interface PredictionData {
+  id: number;
+  predictedHigher: boolean;
+  startPrice: string;
+  startTime: number;
+  resolved: boolean;
+  won?: boolean;
+}
 
-  private getContract(): ethers.Contract | null {
-    if (!this.provider) {
-      console.warn('Provider not initialized. This method should only be called on the client side.');
-      return null;
-    }
-    if (!this.contract) {
-      this.contract = new ethers.Contract(
-        VOLATILITY_VANGUARD_ADDRESS,
-        VolatilityVanguardABI,
-        this.provider
-      );
-    }
-    return this.contract;
-  }
+export class VolatilityVanguardService {
+  private config: Config;
 
-  private getContractWithSigner(signer: ethers.Signer): ethers.Contract {
-    return new ethers.Contract(
-      VOLATILITY_VANGUARD_ADDRESS,
-      VolatilityVanguardABI,
-      signer
-    );
+  constructor(config: Config) {
+    this.config = config;
   }
 
   /**
@@ -66,12 +57,17 @@ class VolatilityVanguardService {
    */
   async getCurrentRoundId(): Promise<number> {
     try {
-      const contract = this.getContract();
-      if (!contract) {
+      if (VOLATILITY_VANGUARD_ADDRESS === zeroAddress) {
         return 0;
       }
-      const roundId = await contract.currentRoundId();
-      return roundId.toNumber();
+
+      const result = await readContract(this.config, {
+        address: VOLATILITY_VANGUARD_ADDRESS as Address,
+        abi: VolatilityVanguardABI,
+        functionName: 'currentRoundId',
+      });
+
+      return Number(result);
     } catch (error) {
       console.error('Get current round ID error:', error);
       return 0;
@@ -86,14 +82,14 @@ class VolatilityVanguardService {
       if (VOLATILITY_VANGUARD_ADDRESS === zeroAddress) {
         return null;
       }
-      
-      const contract = this.getContract();
-      if (!contract) {
-        return null;
-      }
-      
-      const result = await contract.getRoundInfo(roundId);
-      
+
+      const result = await readContract(this.config, {
+        address: VOLATILITY_VANGUARD_ADDRESS as Address,
+        abi: VolatilityVanguardABI,
+        functionName: 'getRoundInfo',
+        args: [BigInt(roundId)],
+      }) as any;
+
       return {
         id: result[0],
         startTime: result[1],
@@ -103,7 +99,7 @@ class VolatilityVanguardService {
         totalPool: result[5],
         totalHigherStaked: result[6],
         totalLowerStaked: result[7],
-        result: result[8]
+        result: Number(result[8])
       };
     } catch (error: any) {
       console.warn('Get round info error:', error);
@@ -115,33 +111,46 @@ class VolatilityVanguardService {
    * Place a prediction on a round (payable with CELO)
    * @param roundId The round ID to predict on
    * @param predictsHigher True for Higher volatility, false for Lower
-   * @param stakeAmount Amount in CELO to stake (in wei)
-   * @param signer The signer for the transaction
+   * @param stakeAmount Amount in CELO to stake (as string, will be converted to wei)
    */
   async placePrediction(
     roundId: number,
     predictsHigher: boolean,
-    stakeAmount: string, // Amount in CELO (will be converted to wei)
-    signer: ethers.Signer
+    stakeAmount: string // Amount in CELO (will be converted to wei)
   ): Promise<{ success: boolean; txHash?: string; error?: string }> {
     try {
-      const contract = this.getContractWithSigner(signer);
-      
-      // Convert stake amount to wei
+      const account = getAccount(this.config);
+      if (!account.address) {
+        return {
+          success: false,
+          error: 'Wallet not connected'
+        };
+      }
+
       const stakeAmountWei = parseEther(stakeAmount);
-      
-      // Place prediction with native CELO transfer
-      const tx = await contract.placePrediction(roundId, predictsHigher, {
-        value: stakeAmountWei.toString(),
-        gasLimit: 300000
+
+      const hash = await writeContract(this.config, {
+        address: VOLATILITY_VANGUARD_ADDRESS as Address,
+        abi: VolatilityVanguardABI,
+        functionName: 'placePrediction',
+        args: [BigInt(roundId), predictsHigher],
+        value: stakeAmountWei,
       });
 
-      const receipt = await tx.wait();
-      
-      return {
-        success: true,
-        txHash: receipt.transactionHash
-      };
+      // Wait for transaction receipt
+      const receipt = await waitForTransactionReceipt(this.config, { hash });
+
+      if (receipt.status === 'success') {
+        return {
+          success: true,
+          txHash: hash
+        };
+      } else {
+        return {
+          success: false,
+          error: 'Transaction failed or was reverted'
+        };
+      }
     } catch (error: any) {
       console.error('Place prediction error:', error);
       return {
@@ -154,25 +163,40 @@ class VolatilityVanguardService {
   /**
    * Claim winnings for settled rounds
    * @param roundIds Array of round IDs to claim
-   * @param signer The signer for the transaction
    */
   async claimWinnings(
-    roundIds: number[],
-    signer: ethers.Signer
+    roundIds: number[]
   ): Promise<{ success: boolean; txHash?: string; error?: string }> {
     try {
-      const contract = this.getContractWithSigner(signer);
-      
-      const tx = await contract.claimWinnings(roundIds, {
-        gasLimit: 500000
+      const account = getAccount(this.config);
+      if (!account.address) {
+        return {
+          success: false,
+          error: 'Wallet not connected'
+        };
+      }
+
+      const hash = await writeContract(this.config, {
+        address: VOLATILITY_VANGUARD_ADDRESS as Address,
+        abi: VolatilityVanguardABI,
+        functionName: 'claimWinnings',
+        args: [roundIds.map(id => BigInt(id))],
       });
 
-      const receipt = await tx.wait();
-      
-      return {
-        success: true,
-        txHash: receipt.transactionHash
-      };
+      // Wait for transaction receipt
+      const receipt = await waitForTransactionReceipt(this.config, { hash });
+
+      if (receipt.status === 'success') {
+        return {
+          success: true,
+          txHash: hash
+        };
+      } else {
+        return {
+          success: false,
+          error: 'Transaction failed or was reverted'
+        };
+      }
     } catch (error: any) {
       console.error('Claim winnings error:', error);
       return {
@@ -187,13 +211,17 @@ class VolatilityVanguardService {
    */
   async getUserPrediction(roundId: number, userAddress: string): Promise<UserPrediction | null> {
     try {
-      const contract = this.getContract();
-      if (!contract) {
+      if (VOLATILITY_VANGUARD_ADDRESS === zeroAddress) {
         return null;
       }
-      
-      const result = await contract.getUserPrediction(roundId, userAddress);
-      
+
+      const result = await readContract(this.config, {
+        address: VOLATILITY_VANGUARD_ADDRESS as Address,
+        abi: VolatilityVanguardABI,
+        functionName: 'getUserPrediction',
+        args: [BigInt(roundId), userAddress as Address],
+      }) as any;
+
       return {
         hasPredictedInRound: result[0],
         amount: result[1],
@@ -211,17 +239,43 @@ class VolatilityVanguardService {
    */
   async getUserRounds(userAddress: string, startRound: number, endRound: number): Promise<number[]> {
     try {
-      const contract = this.getContract();
-      if (!contract) {
+      if (VOLATILITY_VANGUARD_ADDRESS === zeroAddress) {
         return [];
       }
-      
-      const roundIds = await contract.getUserRounds(userAddress, startRound, endRound);
-      
-      return roundIds.map((id: ethers.BigNumber) => id.toNumber());
+
+      const roundIds = await readContract(this.config, {
+        address: VOLATILITY_VANGUARD_ADDRESS as Address,
+        abi: VolatilityVanguardABI,
+        functionName: 'getUserRounds',
+        args: [userAddress as Address, BigInt(startRound), BigInt(endRound)],
+      }) as bigint[];
+
+      return roundIds.map(id => Number(id));
     } catch (error) {
       console.error('Get user rounds error:', error);
       return [];
+    }
+  }
+
+  /**
+   * Get contract owner address
+   */
+  async getOwner(): Promise<string | null> {
+    try {
+      if (VOLATILITY_VANGUARD_ADDRESS === zeroAddress) {
+        return null;
+      }
+
+      const owner = await readContract(this.config, {
+        address: VOLATILITY_VANGUARD_ADDRESS as Address,
+        abi: VolatilityVanguardABI,
+        functionName: 'owner',
+      }) as Address;
+
+      return owner as string;
+    } catch (error) {
+      console.error('Get owner error:', error);
+      return null;
     }
   }
 
@@ -236,25 +290,44 @@ class VolatilityVanguardService {
     feeReceiver: string;
   } | null> {
     try {
-      const contract = this.getContract();
-      if (!contract) {
+      if (VOLATILITY_VANGUARD_ADDRESS === zeroAddress) {
         return null;
       }
-      
+
       const [feeRate, riskThreshold, lockTime, oracleAddress, feeReceiver] = await Promise.all([
-        contract.feeRate(),
-        contract.riskThreshold(),
-        contract.lockTime(),
-        contract.oracleAddress(),
-        contract.feeReceiver()
+        readContract(this.config, {
+          address: VOLATILITY_VANGUARD_ADDRESS as Address,
+          abi: VolatilityVanguardABI,
+          functionName: 'feeRate',
+        }) as Promise<bigint>,
+        readContract(this.config, {
+          address: VOLATILITY_VANGUARD_ADDRESS as Address,
+          abi: VolatilityVanguardABI,
+          functionName: 'riskThreshold',
+        }) as Promise<bigint>,
+        readContract(this.config, {
+          address: VOLATILITY_VANGUARD_ADDRESS as Address,
+          abi: VolatilityVanguardABI,
+          functionName: 'lockTime',
+        }) as Promise<bigint>,
+        readContract(this.config, {
+          address: VOLATILITY_VANGUARD_ADDRESS as Address,
+          abi: VolatilityVanguardABI,
+          functionName: 'oracleAddress',
+        }) as Promise<Address>,
+        readContract(this.config, {
+          address: VOLATILITY_VANGUARD_ADDRESS as Address,
+          abi: VolatilityVanguardABI,
+          functionName: 'feeReceiver',
+        }) as Promise<Address>,
       ]);
-      
+
       return {
         feeRate,
         riskThreshold,
         lockTime,
-        oracleAddress,
-        feeReceiver
+        oracleAddress: oracleAddress as string,
+        feeReceiver: feeReceiver as string
       };
     } catch (error) {
       console.error('Get contract config error:', error);
@@ -263,4 +336,36 @@ class VolatilityVanguardService {
   }
 }
 
-export const volatilityVanguardService = new VolatilityVanguardService();
+/**
+ * Get risk label based on risk level
+ * @param riskLevel 0 = Low, 1 = Medium, 2 = High
+ */
+export const getRiskLabel = (riskLevel: number): string => {
+  switch (riskLevel) {
+    case 0:
+      return 'Low Risk';
+    case 1:
+      return 'Medium Risk';
+    case 2:
+      return 'High Risk';
+    default:
+      return 'Unknown Risk';
+  }
+};
+
+/**
+ * Get risk threshold percentage based on risk level
+ * @param riskLevel 0 = Low, 1 = Medium, 2 = High
+ */
+export const getRiskThreshold = (riskLevel: number): number => {
+  switch (riskLevel) {
+    case 0:
+      return 5.0; // Low risk: 5% volatility threshold
+    case 1:
+      return 10.0; // Medium risk: 10% volatility threshold
+    case 2:
+      return 15.0; // High risk: 15% volatility threshold
+    default:
+      return 10.0; // Default to medium risk threshold
+  }
+};

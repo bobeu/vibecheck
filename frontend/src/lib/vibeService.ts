@@ -99,13 +99,13 @@ class VibeService {
   // Real Gemini API integration with Google Search grounding
   private async fetchVibrancyWithGemini(tokenId: string): Promise<VibrancyData> {
     // 1. Define the system and user prompts
-    const systemPrompt = "You are a world-class, unbiased financial analyst specializing in decentralized finance (DeFi) assets. Your task is to provide a concise, single-paragraph analysis (maximum 100 words) of the current market and community status of the requested token. Use a professional, objective tone. Do not use markdown formatting (like bolding or lists) in the final analysis text.";
+    const systemPrompt = "You are a world-class, unbiased financial analyst specializing in decentralized finance (DeFi) assets. Your task is to provide a concise, single-paragraph analysis (maximum 150 words) of the current market and community status of the requested token. Use a professional, objective tone. Do not use markdown formatting (like bolding or lists) in the final analysis text.";
 
     // The user query must ask for up-to-date information.
     const userQuery = `Find the most recent community sentiment, major news updates, and current market trends for the token with the ticker symbol ${tokenId} in the last 7 days. Summarize your findings in a single paragraph focused on 'vibrancy'.`;
 
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
+    const apiUrl = process.env.NEXT_PUBLIC_APIURL as string;
+    // const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
 
     // 2. Construct the API payload, including Google Search Grounding
     const payload = {

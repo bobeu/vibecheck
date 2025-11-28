@@ -1,7 +1,7 @@
 import React from 'react';
-import { Progress } from '@/components/ui/progress';
-import { Card } from '@/components/ui/card';
-import { getScoreColor, getScoreLabel, getScoreGradient } from '@/lib/vibeService';
+// import { Progress } from '@/components/ui/progress';
+// import { Card } from '@/components/ui/card';
+import { getScoreColor, getScoreLabel } from '@/lib/vibeService';
 
 interface VibrancyScoreProps {
   score: number;

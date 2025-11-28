@@ -66,28 +66,54 @@ class FirebaseService {
         return;
       }
 
+      // Validate Firebase config before initializing
+      if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+        console.warn('Firebase config is incomplete. Using localStorage fallback.');
+        this.authInitialized = true;
+        return;
+      }
+
       // Initialize Firebase app
       this.app = initializeApp(firebaseConfig);
       this.db = getFirestore(this.app);
       this.auth = getAuth(this.app);
 
-      // Set up auth state listener
-      onAuthStateChanged(this.auth, (user) => {
-        this.userId = user?.uid || null;
-        this.authInitialized = true;
-        
-        // Notify all callbacks
-        this.onAuthChangeCallbacks.forEach(callback => {
-          callback(this.userId);
+      // Set up auth state listener with error handling
+      try {
+        onAuthStateChanged(this.auth, (user) => {
+          this.userId = user?.uid || null;
+          this.authInitialized = true;
+          
+          // Notify all callbacks
+          this.onAuthChangeCallbacks.forEach(callback => {
+            callback(this.userId);
+          });
         });
-      });
 
-      // Attempt authentication
-      await this.authenticate();
-    } catch (error) {
+        // Attempt authentication (will handle errors gracefully)
+        await this.authenticate();
+      } catch (authError: any) {
+        // If auth setup fails, continue without auth
+        if (authError?.code === 'auth/configuration-not-found' || 
+            authError?.code === 'auth/operation-not-allowed') {
+          console.warn('Firebase Authentication is not properly configured. Continuing without auth.');
+          this.authInitialized = true;
+          // Still notify callbacks that auth is ready (but failed)
+          this.onAuthChangeCallbacks.forEach(callback => {
+            callback(null);
+          });
+        } else {
+          throw authError;
+        }
+      }
+    } catch (error: any) {
       console.error('Firebase initialization failed:', error);
       // Mark as initialized even on error to prevent infinite waiting
       this.authInitialized = true;
+      // Notify callbacks that initialization is complete (even if failed)
+      this.onAuthChangeCallbacks.forEach(callback => {
+        callback(null);
+      });
     }
   }
 
@@ -102,13 +128,35 @@ class FirebaseService {
       } else {
         await signInAnonymously(this.auth);
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Check if it's a configuration error
+      if (error?.code === 'auth/configuration-not-found' || 
+          error?.code === 'auth/operation-not-allowed') {
+        console.warn('Firebase Authentication is not configured or anonymous auth is disabled.');
+        console.warn('The app will continue to work, but some features may be limited.');
+        console.warn('To enable Firebase features:');
+        console.warn('1. Go to Firebase Console > Authentication > Sign-in method');
+        console.warn('2. Enable "Anonymous" authentication');
+        console.warn('3. Ensure your Firebase project is properly configured');
+        // Don't throw - allow app to continue without auth
+        return;
+      }
+      
       console.error('Authentication failed:', error);
-      // Fallback to anonymous auth
-      try {
-        await signInAnonymously(this.auth);
-      } catch (fallbackError) {
-        console.error('Anonymous auth failed:', fallbackError);
+      // Fallback to anonymous auth only if it's not a configuration error
+      if (error?.code !== 'auth/configuration-not-found' && 
+          error?.code !== 'auth/operation-not-allowed') {
+        try {
+          await signInAnonymously(this.auth);
+        } catch (fallbackError: any) {
+          // Only log if it's not the same configuration error
+          if (fallbackError?.code !== 'auth/configuration-not-found' && 
+              fallbackError?.code !== 'auth/operation-not-allowed') {
+            console.error('Anonymous auth failed:', fallbackError);
+          } else {
+            console.warn('Firebase Authentication is not configured. App will use localStorage fallback.');
+          }
+        }
       }
     }
   }
@@ -289,7 +337,7 @@ class FirebaseService {
     }
 
     try {
-      const docRef = doc(this.db, this.getUserPath('settings'), 'premium');
+      // const docRef = doc(this.db, this.getUserPath('settings'), 'premium');
       const snapshot = await getDocs(collection(this.db, this.getUserPath('settings')));
       const premiumDoc = snapshot.docs.find(d => d.id === 'premium');
       return premiumDoc?.data()?.active || false;

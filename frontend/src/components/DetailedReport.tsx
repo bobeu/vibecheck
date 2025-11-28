@@ -2,7 +2,6 @@ import React from 'react';
 import { TrendingUp, TrendingDown, AlertCircle, CheckCircle, Activity, Users, DollarSign, Pocket } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import VibrancyScore from './VibrancyScore';
 import { type DetailedReport as ReportType, getScoreColor } from '@/lib/vibeService';
 
@@ -30,14 +29,16 @@ const DetailedReport: React.FC<DetailedReportProps> = ({ report }) => {
           <Icon className="h-4 w-4 text-celo" />
           <span className="text-sm font-medium text-foreground">{title}</span>
         </div>
-        {trend && (
-          <div className={`flex items-center gap-1 ${
-            trend === 'up' ? 'text-minipay' : trend === 'down' ? 'text-destructive' : 'text-muted-foreground'
-          }`}>
-            {trend === 'up' ? <TrendingUp className="h-3 w-3" /> : 
-             trend === 'down' ? <TrendingDown className="h-3 w-3" /> : null}
-          </div>
-        )}
+        {
+          trend && (
+            <div className={`flex items-center gap-1 ${
+              trend === 'up' ? 'text-minipay' : trend === 'down' ? 'text-destructive' : 'text-muted-foreground'
+            }`}>
+              {trend === 'up' ? <TrendingUp className="h-3 w-3" /> : 
+              trend === 'down' ? <TrendingDown className="h-3 w-3" /> : null}
+            </div>
+          )
+        }
       </div>
       <div className="space-y-2">
         <div className={`text-2xl font-bold ${value >= 70 ? 'text-celo glow-text' : getScoreColor(value)}`}>

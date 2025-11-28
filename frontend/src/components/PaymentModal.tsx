@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
-import { CreditCard, Loader2, CheckCircle, AlertCircle, X, Zap } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { CreditCard, Loader2, CheckCircle, AlertCircle, X, Zap, TestTube } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { paymentService, type PaymentResult } from '@/lib/paymentService';
+import { isExternalWallet } from '@/lib/wagmi';
+import { useAccount, useConfig } from 'wagmi';
+import { Address } from 'viem';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -19,6 +23,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   type,
   tokenSymbol = ''
 }) => {
+  const config = useConfig();
+  const { address, chainId: chId } = useAccount();
+  const chainId = Number(chId);
+  const account = address as Address;
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<PaymentResult | null>(null);
 
@@ -31,6 +39,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     ? 'Get complete AI analysis with predictions and insights'
     : 'Track up to 5 tokens with real-time Vibrancy updates';
 
+  // Check if we're using mock cUSD (external wallet context)
+  const isMockMode = useMemo(() => isExternalWallet(), []);
+
   const handlePayment = async () => {
     setIsProcessing(true);
     setResult(null);
@@ -39,9 +50,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       let paymentResult: PaymentResult;
       
       if (type === 'report') {
-        paymentResult = await paymentService.purchaseReport(tokenSymbol);
+        paymentResult = await paymentService.purchaseReport({account, config, chainId, tokenSymbol});
       } else {
-        paymentResult = await paymentService.purchasePremiumWatchlist();
+        paymentResult = await paymentService.purchasePremiumWatchlist({chainId, account, config});
       }
 
       setResult(paymentResult);
@@ -98,10 +109,23 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-bold text-celo glow-text">{amount}</span>
                 <span className="text-minipay font-semibold">cUSD</span>
+                {isMockMode && (
+                  <Badge {...({ variant: "outline" } as any)} className="border-orange-500/30 text-orange-500 text-xs">
+                    <TestTube className="h-3 w-3 mr-1" />
+                    Mock
+                  </Badge>
+                )}
               </div>
             </div>
             <div className="text-xs text-muted-foreground">
-              Payment processed through MiniPay • Secure cUSD transaction
+              {isMockMode ? (
+                <span className="flex items-center gap-1">
+                  <TestTube className="h-3 w-3 text-orange-500" />
+                  Development mode: Using mock cUSD for testing
+                </span>
+              ) : (
+                'Payment processed through MiniPay • Secure cUSD transaction'
+              )}
             </div>
           </div>
 

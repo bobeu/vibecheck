@@ -94,8 +94,22 @@ contract VolatilityVanguard is ReentrancyGuard, Ownable {
     
     /**
      * @dev Start a new prediction round (Admin/OnlyOwner)
+     * @notice Can only start a new round if:
+     *         - No rounds exist yet (currentRoundId == 0), OR
+     *         - Current round is settled, OR
+     *         - Current round's lockTime has elapsed
      */
     function startNewRound() external onlyOwner {
+        // Guard: Prevent starting new round if current round is still open
+        if (currentRoundId > 0) {
+            Round storage currentRound = rounds[currentRoundId];
+            require(
+                currentRound.isSettled || 
+                block.timestamp >= currentRound.startTime + currentRound.lockTime,
+                "Cannot start new round: current round is still open for predictions"
+            );
+        }
+        
         currentRoundId++;
         
         rounds[currentRoundId] = Round({

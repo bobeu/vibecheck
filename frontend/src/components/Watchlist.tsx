@@ -31,8 +31,8 @@ const Watchlist: React.FC<WatchlistProps> = ({ onTokenSelect }) => {
     firebaseService.onAuthChange((newUserId) => {
       setUserId(newUserId);
       // Reload watchlist when auth state changes
-      loadWatchlist();
-      checkPremiumStatus();
+        loadWatchlist();
+        checkPremiumStatus();
     });
 
     return () => {

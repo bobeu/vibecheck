@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useAccount } from 'wagmi';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useAccount, useConfig } from 'wagmi';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  volatilityVanguardService, 
+  VolatilityVanguardService,
   type RoundData,
   type UserPrediction 
 } from '@/lib/volatilityVanguardService';
@@ -15,6 +15,13 @@ interface UseVolatilityVanguardProps {
 export const useVolatilityVanguard = ({}: UseVolatilityVanguardProps = {}) => {
   const { toast } = useToast();
   const { address: userAddress } = useAccount();
+  const config = useConfig();
+  
+  // Create service instance with wagmi config
+  const volatilityVanguardService = useMemo(
+    () => new VolatilityVanguardService(config),
+    [config]
+  );
   
   const [currentRound, setCurrentRound] = useState<RoundData | null>(null);
   const [currentRoundId, setCurrentRoundId] = useState<number>(0);
@@ -46,7 +53,7 @@ export const useVolatilityVanguard = ({}: UseVolatilityVanguardProps = {}) => {
     } catch (error) {
       console.error('Error loading current round:', error);
     }
-  }, [userAddress]);
+  }, [userAddress, volatilityVanguardService]);
 
   // Load user's rounds
   const loadUserRounds = useCallback(async () => {
@@ -65,19 +72,19 @@ export const useVolatilityVanguard = ({}: UseVolatilityVanguardProps = {}) => {
     } catch (error) {
       console.error('Error loading user rounds:', error);
     }
-  }, [userAddress]);
+  }, [userAddress, volatilityVanguardService]);
 
   // Load contract configuration
   const loadContractConfig = useCallback(async () => {
     try {
-      const config = await volatilityVanguardService.getContractConfig();
-      setContractConfig(config);
+      const contractConfigData = await volatilityVanguardService.getContractConfig();
+      setContractConfig(contractConfigData);
     } catch (error) {
       console.error('Error loading contract config:', error);
     }
-  }, []);
+  }, [volatilityVanguardService]);
 
-  // Place prediction - This function is kept for compatibility but should use Wagmi hooks in component
+  // Place prediction - Uses Wagmi internally
   const placePrediction = useCallback(async (
     roundId: number,
     predictsHigher: boolean,
@@ -86,33 +93,17 @@ export const useVolatilityVanguard = ({}: UseVolatilityVanguardProps = {}) => {
     if (!userAddress) {
       toast({
         title: "Wallet Required",
-        description: "Please connect your MiniPay wallet"
+        description: "Please connect your wallet"
       });
       return { success: false, error: "Wallet not connected" };
     }
 
     setIsLoading(true);
     try {
-      if (!window.ethereum) {
-        throw new Error("Wallet provider not available");
-      }
-
-      // Use ethers if available, otherwise import it
-      let ethersModule: any;
-      if (typeof window !== 'undefined' && (window as any).ethers) {
-        ethersModule = (window as any).ethers;
-      } else {
-        ethersModule = await import('ethers');
-      }
-
-      const provider = new ethersModule.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-
       const result = await volatilityVanguardService.placePrediction(
         roundId,
         predictsHigher,
-        stakeAmount,
-        signer
+        stakeAmount
       );
 
       if (result.success) {
@@ -138,9 +129,9 @@ export const useVolatilityVanguard = ({}: UseVolatilityVanguardProps = {}) => {
     } finally {
       setIsLoading(false);
     }
-  }, [toast, loadCurrentRound, loadUserRounds, userAddress]);
+  }, [toast, loadCurrentRound, loadUserRounds, userAddress, volatilityVanguardService]);
 
-  // Claim winnings - This function is kept for compatibility but should use Wagmi hooks in component
+  // Claim winnings - Uses Wagmi internally
   const claimWinnings = useCallback(async (roundIds: number[]) => {
     if (!userAddress) {
       toast({
@@ -152,22 +143,7 @@ export const useVolatilityVanguard = ({}: UseVolatilityVanguardProps = {}) => {
 
     setIsLoading(true);
     try {
-      if (!window.ethereum) {
-        throw new Error("Wallet provider not available");
-      }
-
-      // Use ethers if available, otherwise import it
-      let ethersModule: any;
-      if (typeof window !== 'undefined' && (window as any).ethers) {
-        ethersModule = (window as any).ethers;
-      } else {
-        ethersModule = await import('ethers');
-      }
-
-      const provider = new ethersModule.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-
-      const result = await volatilityVanguardService.claimWinnings(roundIds, signer);
+      const result = await volatilityVanguardService.claimWinnings(roundIds);
 
       if (result.success) {
         toast({
@@ -192,7 +168,7 @@ export const useVolatilityVanguard = ({}: UseVolatilityVanguardProps = {}) => {
     } finally {
       setIsLoading(false);
     }
-  }, [toast, loadCurrentRound, loadUserRounds, userAddress]);
+  }, [toast, loadCurrentRound, loadUserRounds, userAddress, volatilityVanguardService]);
 
   // Initialize data
   useEffect(() => {

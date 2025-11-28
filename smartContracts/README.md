@@ -15,7 +15,7 @@ npx hardhat ignition deploy ./ignition/modules/Lock.ts
 <!-- yarn run v1.22.22
 DEPLOYMENTS
 ===========
-$ hardhat deploy --network alfajores --export deployments/contracts.json
+$ hardhat deploy --network sepolia --export deployments/contracts.json
 Nothing to compile
 No need to generate any newer typings.
 deploying "Learna" (tx: 0x4361af1de8a45418b939e1a0630ed4723adb71df739d798cb72066d87142269a)...: deployed at 0x7B5C41A863604aE9dC5471Af977cbB3Effa365A7 with 1184780 gas
@@ -26,7 +26,7 @@ Done in 29.73s. -->
 
 
 <!-- yarn run v1.22.22
-$ hardhat deploy --network alfajores --export deployments/contracts.json
+$ hardhat deploy --network sepolia --export deployments/contracts.json
 Nothing to compile
 No need to generate any newer typings.
 Admin 0xC0f6Ef6C8A58fB431015D4D2d7e0925718EaC010
@@ -36,7 +36,7 @@ deploying "GrowToken" (tx: 0x426de36b55fbf6fd48043e8a3960ca5a216624bf168992efbc2
 GrowToken deployed to: 0xC92dE8aeDE6799c30D874bF273aB74A4eea01A35
 Done in 34.11s. -->
 <!-- 
-$ hardhat deploy --network alfajores --export deployments/contracts.json
+$ hardhat deploy --network sepolia --export deployments/contracts.json
 Nothing to compile
 No need to generate any newer typings.
 Admin 0xC0f6Ef6C8A58fB431015D4D2d7e0925718EaC010
