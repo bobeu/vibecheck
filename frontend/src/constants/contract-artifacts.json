@@ -3,10 +3,15 @@
   "networkName": "sepolia",
   "contracts": {
     "VolatilityVanguard": {
-      "address": "0x129568fe5620790B9A04b0CbE639A675Eb542E76",
+      "address": "0xE5e68558282522a4ad29f3eCE4F9B1EC5791C1c6",
       "abi": [
         {
           "inputs": [
+            {
+              "internalType": "address",
+              "name": "_cUSDAddress",
+              "type": "address"
+            },
             {
               "internalType": "address",
               "name": "_oracleAddress",
@@ -61,6 +66,17 @@
         {
           "inputs": [],
           "name": "ReentrancyGuardReentrantCall",
+          "type": "error"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
+              "name": "token",
+              "type": "address"
+            }
+          ],
+          "name": "SafeERC20FailedOperation",
           "type": "error"
         },
         {
@@ -202,6 +218,19 @@
           "type": "event"
         },
         {
+          "inputs": [],
+          "name": "cUSD",
+          "outputs": [
+            {
+              "internalType": "contract IERC20",
+              "name": "",
+              "type": "address"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
           "inputs": [
             {
               "internalType": "uint256[]",
@@ -301,7 +330,7 @@
             },
             {
               "internalType": "uint256",
-              "name": "lockTime",
+              "name": "roundLockTime",
               "type": "uint256"
             },
             {
@@ -504,11 +533,16 @@
               "internalType": "bool",
               "name": "_predictsHigher",
               "type": "bool"
+            },
+            {
+              "internalType": "uint256",
+              "name": "_amount",
+              "type": "uint256"
             }
           ],
           "name": "placePrediction",
           "outputs": [],
-          "stateMutability": "payable",
+          "stateMutability": "nonpayable",
           "type": "function"
         },
         {
@@ -740,10 +774,6 @@
           "outputs": [],
           "stateMutability": "nonpayable",
           "type": "function"
-        },
-        {
-          "stateMutability": "payable",
-          "type": "receive"
         }
       ]
     }

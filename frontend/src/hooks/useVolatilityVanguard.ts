@@ -84,11 +84,11 @@ export const useVolatilityVanguard = ({}: UseVolatilityVanguardProps = {}) => {
     }
   }, [volatilityVanguardService]);
 
-  // Place prediction - Uses Wagmi internally
+  // Place prediction - Uses service which handles cUSD approval
   const placePrediction = useCallback(async (
     roundId: number,
     predictsHigher: boolean,
-    stakeAmount: string // Amount in CELO
+    stakeAmount: string // Amount in cUSD
   ) => {
     if (!userAddress) {
       toast({
@@ -109,7 +109,7 @@ export const useVolatilityVanguard = ({}: UseVolatilityVanguardProps = {}) => {
       if (result.success) {
         toast({
           title: "Prediction Placed!",
-          description: `Staked ${stakeAmount} CELO on Round ${roundId}`
+          description: `Staked ${stakeAmount} cUSD on Round ${roundId}`
         });
         
         // Refresh data

@@ -3,6 +3,11 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "_cUSDAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
         "name": "_oracleAddress",
         "type": "address"
       },
@@ -55,6 +60,17 @@
   {
     "inputs": [],
     "name": "ReentrancyGuardReentrantCall",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "SafeERC20FailedOperation",
     "type": "error"
   },
   {
@@ -196,6 +212,19 @@
     "type": "event"
   },
   {
+    "inputs": [],
+    "name": "cUSD",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256[]",
@@ -295,7 +324,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "lockTime",
+        "name": "roundLockTime",
         "type": "uint256"
       },
       {
@@ -498,11 +527,16 @@
         "internalType": "bool",
         "name": "_predictsHigher",
         "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
       }
     ],
     "name": "placePrediction",
     "outputs": [],
-    "stateMutability": "payable",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -734,9 +768,5 @@
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
-  },
-  {
-    "stateMutability": "payable",
-    "type": "receive"
   }
 ]

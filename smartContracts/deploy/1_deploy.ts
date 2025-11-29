@@ -35,6 +35,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 	const volatilityVanguard = await deploy("VolatilityVanguard", {
 		from: deployer,
 		args: [
+			cusdAddress,
 			oracleAddress,
 			feeReceiver,
 			FEE_RATE,

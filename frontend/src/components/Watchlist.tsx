@@ -82,12 +82,23 @@ const Watchlist: React.FC<WatchlistProps> = ({ onTokenSelect }) => {
   };
 
   const removeFromWatchlist = async (tokenId: string) => {
-    await paymentService.removeFromWatchlist(tokenId);
-    setScores(prev => {
-      const newScores = { ...prev };
-      delete newScores[tokenId];
-      return newScores;
-    });
+    try {
+      const success = await paymentService.removeFromWatchlist(tokenId);
+      if (success) {
+        // Remove from local scores state
+        setScores(prev => {
+          const newScores = { ...prev };
+          delete newScores[tokenId];
+          return newScores;
+        });
+        // Manually update watchlist state as fallback (subscription should handle this, but this ensures immediate UI update)
+        setWatchlist(prev => prev.filter(item => item.tokenId !== tokenId));
+      } else {
+        console.error('Failed to remove token from watchlist');
+      }
+    } catch (error) {
+      console.error('Error removing from watchlist:', error);
+    }
   };
 
   const handleUpgradeSuccess = () => {

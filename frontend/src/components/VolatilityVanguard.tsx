@@ -5,13 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/hooks/useWallet';
 import { useVolatilityVanguard } from '@/hooks/useVolatilityVanguard';
-import { useReadContract, useWriteContract, useSimulateContract, useWaitForTransactionReceipt, useBalance } from 'wagmi';
+import { useReadContract, useWriteContract, useSimulateContract, useWaitForTransactionReceipt } from 'wagmi';
 import VolatilityVanguardABI from '@/abis/VolatilityVanguardABI.json';
 import { VOLATILITY_VANGUARD_ADDRESS } from '@/contracts/volatilityVanguardAddress';
 import { parseEther, formatEther, zeroAddress } from 'viem';
 import { useToast } from '@/hooks/use-toast';
 import { useVolatilityPrediction } from '@/hooks/useVolatilityPrediction';
 import { Input } from '@/components/ui/input';
+import { VolatilityVanguardService } from '@/lib/volatilityVanguardService';
+import { useConfig } from 'wagmi';
 
 interface VolatilityVanguardProps {
   tokenSymbol: string;
@@ -28,16 +30,24 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
 }) => {
   const { toast } = useToast();
   const { address, isConnected } = useWallet();
-  const [stakeAmount, setStakeAmount] = useState('0.1'); // Default stake in CELO
+  const config = useConfig();
+  const [stakeAmount, setStakeAmount] = useState('0.1'); // Default stake in cUSD
+  const [cUSDBalance, setCUSDBalance] = useState<bigint>(0n);
+  const [isPlacing, setIsPlacing] = useState(false);
   
-  // Get CELO balance
-  const { data: celoBalance } = useBalance({
-    address: address as `0x${string}` | undefined,
-    query: {
-      enabled: !!address,
-      refetchInterval: 10000,
-    },
-  });
+  // Create service instance
+  const volatilityVanguardService = useMemo(() => {
+    return new VolatilityVanguardService(config);
+  }, [config]);
+  
+  // Load cUSD balance
+  useEffect(() => {
+    if (address) {
+      volatilityVanguardService.getCUSDBalance(address).then(balance => {
+        setCUSDBalance(balance);
+      });
+    }
+  }, [address, volatilityVanguardService]);
   
   // Use the new hook
   const {
@@ -47,7 +57,6 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
     userRounds,
     isLoading: contractLoading,
     contractConfig,
-    placePrediction,
     claimWinnings,
     refreshData
   } = useVolatilityVanguard();
@@ -64,41 +73,7 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
     },
   });
   
-  // Write: place prediction (payable with CELO)
-  const { writeContract: writePlacePrediction, isPending: isPlacing, data: placePredictionHash } = useWriteContract();
-  
-  // Simulate place prediction (Higher)
-  const { data: placePredictionSimulationHigher } = useSimulateContract({
-    address: VOLATILITY_VANGUARD_ADDRESS as `0x${string}`,
-    abi: VolatilityVanguardABI,
-    functionName: 'placePrediction',
-    args: currentRoundId > 0 && stakeAmount
-      ? [BigInt(currentRoundId), true]
-      : undefined,
-    value: stakeAmount && parseFloat(stakeAmount) > 0 ? parseEther(stakeAmount) : undefined,
-    query: {
-      enabled: currentRoundId > 0 && !!stakeAmount && parseFloat(stakeAmount) > 0 && VOLATILITY_VANGUARD_ADDRESS !== zeroAddress,
-    },
-  });
-  
-  // Simulate place prediction (Lower)
-  const { data: placePredictionSimulationLower } = useSimulateContract({
-    address: VOLATILITY_VANGUARD_ADDRESS as `0x${string}`,
-    abi: VolatilityVanguardABI,
-    functionName: 'placePrediction',
-    args: currentRoundId > 0 && stakeAmount
-      ? [BigInt(currentRoundId), false]
-      : undefined,
-    value: stakeAmount && parseFloat(stakeAmount) > 0 ? parseEther(stakeAmount) : undefined,
-    query: {
-      enabled: currentRoundId > 0 && !!stakeAmount && parseFloat(stakeAmount) > 0 && VOLATILITY_VANGUARD_ADDRESS !== zeroAddress,
-    },
-  });
-  
-  // Wait for place prediction transaction
-  const { isLoading: isConfirmingPlacement, isSuccess: isPlacementSuccess } = useWaitForTransactionReceipt({
-    hash: placePredictionHash,
-  });
+  // Write: claim winnings (no changes needed)
   
   // Write: claim winnings
   const { writeContract: writeClaimWinnings, isPending: isClaiming, data: claimHash } = useWriteContract();
@@ -127,16 +102,13 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
     enabled: isVisible 
   });
   
-  // Handle placement success
-  useEffect(() => {
-    if (isPlacementSuccess) {
-      toast({ 
-        title: 'Prediction Placed!', 
-        description: `Staked ${stakeAmount} CELO on Round ${currentRoundId}` 
-      });
-      refreshData();
+  // Refresh cUSD balance after transactions
+  const refreshCUSDBalance = useCallback(async () => {
+    if (address) {
+      const balance = await volatilityVanguardService.getCUSDBalance(address);
+      setCUSDBalance(balance);
     }
-  }, [isPlacementSuccess, toast, refreshData, stakeAmount, currentRoundId]);
+  }, [address, volatilityVanguardService]);
   
   // Handle claim success
   useEffect(() => {
@@ -149,7 +121,7 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
     }
   }, [isClaimSuccess, toast, refreshData]);
   
-  const handlePlacePrediction = useCallback((predictedHigher: boolean) => {
+  const handlePlacePrediction = useCallback(async (predictedHigher: boolean) => {
     if (!isConnected) {
       toast({ 
         title: 'Wallet Required', 
@@ -176,27 +148,45 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
     
     const stakeAmountWei = parseEther(stakeAmount);
     
-    // Check balance
-    if (celoBalance && celoBalance.value < stakeAmountWei) {
+    // Check cUSD balance
+    if (cUSDBalance < stakeAmountWei) {
       toast({ 
         title: 'Insufficient Balance', 
-        description: `You need at least ${stakeAmount} CELO` 
+        description: `You need at least ${stakeAmount} cUSD` 
       });
       return;
     }
     
-    // Use the appropriate simulation based on direction
-    const simulation = predictedHigher ? placePredictionSimulationHigher : placePredictionSimulationLower;
-    
-    if (simulation?.request) {
-      writePlacePrediction(simulation.request);
-    } else {
+    setIsPlacing(true);
+    try {
+      const result = await volatilityVanguardService.placePrediction(
+        currentRoundId,
+        predictedHigher,
+        stakeAmount
+      );
+      
+      if (result.success) {
+        toast({ 
+          title: 'Prediction Placed!', 
+          description: `Staked ${stakeAmount} cUSD on Round ${currentRoundId}` 
+        });
+        await refreshCUSDBalance();
+        refreshData();
+      } else {
+        toast({
+          title: 'Transaction Failed',
+          description: result.error || 'Failed to place prediction',
+        });
+      }
+    } catch (error: any) {
       toast({
-        title: 'Transaction Preparation Failed',
-        description: 'Unable to prepare transaction. Please try again.',
+        title: 'Transaction Failed',
+        description: error.message || 'Failed to place prediction',
       });
+    } finally {
+      setIsPlacing(false);
     }
-  }, [isConnected, currentRoundId, stakeAmount, celoBalance, toast, writePlacePrediction, placePredictionSimulationHigher, placePredictionSimulationLower]);
+  }, [isConnected, currentRoundId, stakeAmount, cUSDBalance, toast, volatilityVanguardService, refreshCUSDBalance, refreshData]);
   
   const handleClaimWinnings = useCallback((roundIds: number[]) => {
     if (!isConnected) {
@@ -284,7 +274,7 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
           <h2 className="text-xl font-bold text-foreground">Volatility Vanguard</h2>
         </div>
         <p className="text-muted-foreground text-sm">
-          Predict volatility in round-based prediction market using CELO
+          Predict volatility in round-based prediction market using cUSD
         </p>
       </div>
 
@@ -312,7 +302,7 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
             <div className="space-y-2 mt-4">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Total Pool:</span>
-                <span className="font-semibold text-foreground">{parseFloat(totalPool).toFixed(4)} CELO</span>
+                <span className="font-semibold text-foreground">{parseFloat(totalPool).toFixed(4)} cUSD</span>
               </div>
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
@@ -321,7 +311,7 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
                     Higher:
                   </span>
                   <span className="font-medium text-minipay">
-                    {parseFloat(higherStaked).toFixed(4)} CELO ({higherPercentage.toFixed(1)}%)
+                    {parseFloat(higherStaked).toFixed(4)} cUSD ({higherPercentage.toFixed(1)}%)
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -330,7 +320,7 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
                     Lower:
                   </span>
                   <span className="font-medium text-celo">
-                    {parseFloat(lowerStaked).toFixed(4)} CELO ({lowerPercentage.toFixed(1)}%)
+                    {parseFloat(lowerStaked).toFixed(4)} cUSD ({lowerPercentage.toFixed(1)}%)
                   </span>
                 </div>
               </div>
@@ -359,7 +349,7 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Staked:</span>
-                <span className="font-medium text-foreground">{formatEther(userPrediction.amount)} CELO</span>
+                <span className="font-medium text-foreground">{formatEther(userPrediction.amount)} cUSD</span>
               </div>
               {roundData.isSettled && (
                 <div className="flex justify-between">
@@ -400,7 +390,7 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
             {!userPrediction?.hasPredictedInRound ? (
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm text-muted-foreground mb-1 block">Stake Amount (CELO)</label>
+                  <label className="text-sm text-muted-foreground mb-1 block">Stake Amount (cUSD)</label>
                   <Input
                     type="number"
                     step="0.01"
@@ -410,9 +400,9 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
                     placeholder="0.1"
                     className="bg-input border-border"
                   />
-                  {celoBalance && (
+                  {cUSDBalance > 0n && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Balance: {formatEther(celoBalance.value)} CELO
+                      Balance: {formatEther(cUSDBalance)} cUSD
                     </p>
                   )}
                 </div>
@@ -420,7 +410,7 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
                 <div className="grid grid-cols-2 gap-3">
                   <Button
                     onClick={() => handlePlacePrediction(true)}
-                    disabled={isPlacing || isConfirmingPlacement || !isConnected}
+                    disabled={isPlacing || !isConnected}
                     className="gradient-minipay hover:opacity-90"
                   >
                     <TrendingUp className="h-4 w-4 mr-2" />
@@ -428,7 +418,7 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
                   </Button>
                   <Button
                     onClick={() => handlePlacePrediction(false)}
-                    disabled={isPlacing || isConfirmingPlacement || !isConnected}
+                    disabled={isPlacing || !isConnected}
                     className="gradient-celo hover:opacity-90"
                   >
                     <TrendingDown className="h-4 w-4 mr-2" />
@@ -436,9 +426,9 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
                   </Button>
                 </div>
                 
-                {isPlacing || isConfirmingPlacement ? (
+                {isPlacing ? (
                   <p className="text-sm text-muted-foreground text-center">
-                    Processing transaction...
+                    Processing transaction (approving cUSD and placing prediction)...
                   </p>
                 ) : null}
               </div>
@@ -498,7 +488,7 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
           <h4 className="font-medium text-foreground mb-2">How It Works</h4>
           <div className="text-sm text-muted-foreground space-y-1">
             <p>• Predict if volatility will be Higher or Lower in the current round</p>
-            <p>• Stake CELO (native token) on your prediction</p>
+            <p>• Stake cUSD on your prediction (approval required first)</p>
             <p>• Winners share the pool after round settlement</p>
             <p>• Fee is taken from the losing pool</p>
             <p>• Claim your winnings after settlement</p>

@@ -3,14 +3,19 @@ pragma solidity 0.8.28;
 
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * @title VolatilityVanguard
- * @dev Round-based prediction market for token volatility using CELO native token
+ * @dev Round-based prediction market for token volatility using cUSD ERC20 token
  * @notice Uses Inverse Liquidity Pool model with fees taken from losing pool
  */
 contract VolatilityVanguard is ReentrancyGuard, Ownable {
+    using SafeERC20 for IERC20;
+    
     // Global State Variables
+    IERC20 public cUSD; // cUSD token contract
     address public oracleAddress;
     address public feeReceiver;
     uint256 public feeRate; // Fee rate in basis points (e.g., 250 = 2.50%, denominator = 10000)
@@ -25,9 +30,9 @@ contract VolatilityVanguard is ReentrancyGuard, Ownable {
         uint256 lockTime;
         uint256 closeTime; // Time when settlement is called
         bool isSettled;
-        uint256 totalPool; // Total CELO staked in this round
-        uint256 totalHigherStaked; // Total CELO staked on Higher
-        uint256 totalLowerStaked; // Total CELO staked on Lower
+        uint256 totalPool; // Total cUSD staked in this round
+        uint256 totalHigherStaked; // Total cUSD staked on Higher
+        uint256 totalLowerStaked; // Total cUSD staked on Lower
         uint8 result; // 0=Pending, 1=Higher, 2=Lower
     }
     
@@ -68,6 +73,7 @@ contract VolatilityVanguard is ReentrancyGuard, Ownable {
     
     /**
      * @dev Constructor
+     * @param _cUSDAddress Address of the cUSD ERC20 token contract
      * @param _oracleAddress Address authorized to settle rounds
      * @param _feeReceiver Address to receive fees
      * @param _feeRate Fee rate in basis points (e.g., 250 = 2.50%)
@@ -75,16 +81,19 @@ contract VolatilityVanguard is ReentrancyGuard, Ownable {
      * @param _lockTime Lock time in seconds
      */
     constructor(
+        address _cUSDAddress,
         address _oracleAddress,
         address _feeReceiver,
         uint256 _feeRate,
         uint256 _riskThreshold,
         uint256 _lockTime
     ) Ownable(_msgSender()) {
+        require(_cUSDAddress != address(0), "Invalid cUSD address");
         require(_oracleAddress != address(0), "Invalid oracle address");
         require(_feeReceiver != address(0), "Invalid fee receiver address");
         require(_feeRate <= 10000, "Fee rate cannot exceed 100%");
         
+        cUSD = IERC20(_cUSDAddress);
         oracleAddress = _oracleAddress;
         feeReceiver = _feeReceiver;
         feeRate = _feeRate;
@@ -138,7 +147,7 @@ contract VolatilityVanguard is ReentrancyGuard, Ownable {
         returns (
             uint256 id,
             uint256 startTime,
-            uint256 lockTime,
+            uint256 roundLockTime,
             uint256 closeTime,
             bool isSettled,
             uint256 totalPool,
@@ -162,14 +171,14 @@ contract VolatilityVanguard is ReentrancyGuard, Ownable {
     }
     
     /**
-     * @dev Place a prediction (Public, Payable)
+     * @dev Place a prediction (Public)
      * @param _roundId The round ID to predict on
      * @param _predictsHigher True for Higher volatility, false for Lower volatility
-     * @notice CRITICAL: This function MUST be payable. The staked amount is read from msg.value
+     * @param _amount Amount of cUSD to stake (must be approved beforehand)
+     * @notice User must approve this contract to spend cUSD before calling this function
      */
-    function placePrediction(uint256 _roundId, bool _predictsHigher)
+    function placePrediction(uint256 _roundId, bool _predictsHigher, uint256 _amount)
         external
-        payable
         nonReentrant
         validRound(_roundId)
     {
@@ -178,24 +187,27 @@ contract VolatilityVanguard is ReentrancyGuard, Ownable {
         // Pre-checks
         require(_roundId == currentRoundId, "Round is not current");
         require(block.timestamp < round.startTime + round.lockTime, "Round is locked");
-        require(msg.value > 0, "Stake amount must be greater than zero");
+        require(_amount > 0, "Stake amount must be greater than zero");
         require(!hasPredicted[_roundId][msg.sender], "User has already predicted in this round");
         require(!round.isSettled, "Round is already settled");
         
+        // Transfer cUSD from user to contract
+        cUSD.safeTransferFrom(msg.sender, address(this), _amount);
+        
         // Update round totals
-        round.totalPool += msg.value;
+        round.totalPool += _amount;
         if (_predictsHigher) {
-            round.totalHigherStaked += msg.value;
+            round.totalHigherStaked += _amount;
         } else {
-            round.totalLowerStaked += msg.value;
+            round.totalLowerStaked += _amount;
         }
         
         // Update user mappings
         hasPredicted[_roundId][msg.sender] = true;
-        stakedAmount[_roundId][msg.sender] = msg.value;
+        stakedAmount[_roundId][msg.sender] = _amount;
         predictedHigher[_roundId][msg.sender] = _predictsHigher;
         
-        emit PredictionPlaced(_roundId, msg.sender, _predictsHigher, msg.value);
+        emit PredictionPlaced(_roundId, msg.sender, _predictsHigher, _amount);
     }
     
     /**
@@ -267,9 +279,8 @@ contract VolatilityVanguard is ReentrancyGuard, Ownable {
                     feeAmount = (losingPool * feeRate) / 10000;
                     
                     // Transfer fee to feeReceiver (only once per round)
-                    if (feeAmount > 0 && address(this).balance >= feeAmount) {
-                        (bool feeSuccess, ) = payable(feeReceiver).call{value: feeAmount}("");
-                        require(feeSuccess, "Fee transfer failed");
+                    if (feeAmount > 0) {
+                        cUSD.safeTransfer(feeReceiver, feeAmount);
                         feeCollected[roundId] = true;
                         emit FeeCollected(roundId, feeAmount);
                     }
@@ -293,10 +304,7 @@ contract VolatilityVanguard is ReentrancyGuard, Ownable {
                 
                 // Transfer winnings to user
                 require(payoutAmount > 0, "Payout amount must be greater than zero");
-                require(address(this).balance >= payoutAmount, "Insufficient contract balance");
-                
-                (bool success, ) = payable(msg.sender).call{value: payoutAmount}("");
-                require(success, "Payout transfer failed");
+                cUSD.safeTransfer(msg.sender, payoutAmount);
                 
                 // Mark as claimed
                 hasClaimed[roundId][msg.sender] = true;
@@ -411,17 +419,11 @@ contract VolatilityVanguard is ReentrancyGuard, Ownable {
     }
     
     /**
-     * @dev Emergency withdraw (OnlyOwner) - for stuck funds
+     * @dev Emergency withdraw (OnlyOwner) - for stuck cUSD funds
      */
     function emergencyWithdraw() external onlyOwner {
-        uint256 balance = address(this).balance;
+        uint256 balance = cUSD.balanceOf(address(this));
         require(balance > 0, "No funds to withdraw");
-        (bool success, ) = payable(owner()).call{value: balance}("");
-        require(success, "Withdrawal failed");
-    }
-    
-    // Receive function to accept CELO
-    receive() external payable {
-        // Contract can receive CELO for predictions
+        cUSD.safeTransfer(owner(), balance);
     }
 }

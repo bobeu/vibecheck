@@ -318,7 +318,7 @@ class PaymentService {
 
       // Simulate the transaction first
       try {
-        console.log('paymentRecipient', paymentRecipient)
+        // console.log('paymentRecipient', paymentRecipient)
         await simulateContract(config, {
           address: cUSDAddress,
           abi: erc20Abi,

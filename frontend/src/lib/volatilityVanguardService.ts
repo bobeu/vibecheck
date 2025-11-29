@@ -3,9 +3,40 @@ import { readContract, writeContract, waitForTransactionReceipt } from 'wagmi/ac
 import { getAccount, getPublicClient } from '@wagmi/core';
 import contractArtifacts from '@/constants/contract-artifacts.json';
 import VolatilityVanguardABI from '../abis/VolatilityVanguardABI.json';
-import { zeroAddress, parseEther, formatEther, type Address } from 'viem';
+import { zeroAddress, parseEther, formatEther, type Address, maxUint256 } from 'viem';
 
 const VOLATILITY_VANGUARD_ADDRESS = contractArtifacts.contracts?.VolatilityVanguard?.address || zeroAddress;
+
+// ERC20 ABI for approve and balanceOf
+const ERC20_ABI = [
+  {
+    name: 'approve',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'spender', type: 'address' },
+      { name: 'amount', type: 'uint256' }
+    ],
+    outputs: [{ name: '', type: 'bool' }]
+  },
+  {
+    name: 'allowance',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [
+      { name: 'owner', type: 'address' },
+      { name: 'spender', type: 'address' }
+    ],
+    outputs: [{ name: '', type: 'uint256' }]
+  },
+  {
+    name: 'balanceOf',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'account', type: 'address' }],
+    outputs: [{ name: '', type: 'uint256' }]
+  }
+] as const;
 
 export interface RoundData {
   id: bigint;
@@ -108,15 +139,129 @@ export class VolatilityVanguardService {
   }
 
   /**
-   * Place a prediction on a round (payable with CELO)
+   * Get cUSD token address from contract
+   */
+  async getCUSDAddress(): Promise<Address | null> {
+    try {
+      if (VOLATILITY_VANGUARD_ADDRESS === zeroAddress) {
+        return null;
+      }
+
+      const cUSDAddress = await readContract(this.config, {
+        address: VOLATILITY_VANGUARD_ADDRESS as Address,
+        abi: VolatilityVanguardABI,
+        functionName: 'cUSD',
+      }) as Address;
+
+      return cUSDAddress;
+    } catch (error) {
+      console.error('Get cUSD address error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Check and approve cUSD spending if needed
+   * @param amount Amount to approve (in wei)
+   */
+  async approveCUSD(amount: bigint): Promise<{ success: boolean; txHash?: string; error?: string }> {
+    try {
+      const account = getAccount(this.config);
+      if (!account.address) {
+        return {
+          success: false,
+          error: 'Wallet not connected'
+        };
+      }
+
+      const cUSDAddress = await this.getCUSDAddress();
+      if (!cUSDAddress || cUSDAddress === zeroAddress) {
+        return {
+          success: false,
+          error: 'cUSD address not found'
+        };
+      }
+
+      // Check current allowance
+      const currentAllowance = await readContract(this.config, {
+        address: cUSDAddress,
+        abi: ERC20_ABI,
+        functionName: 'allowance',
+        args: [account.address, VOLATILITY_VANGUARD_ADDRESS as Address],
+      }) as bigint;
+
+      // If allowance is sufficient, no need to approve
+      if (currentAllowance >= amount) {
+        return {
+          success: true
+        };
+      }
+
+      // Approve the contract to spend cUSD (approve max to avoid multiple approvals)
+      const hash = await writeContract(this.config, {
+        address: cUSDAddress,
+        abi: ERC20_ABI,
+        functionName: 'approve',
+        args: [VOLATILITY_VANGUARD_ADDRESS as Address, maxUint256],
+      });
+
+      // Wait for transaction receipt
+      const receipt = await waitForTransactionReceipt(this.config, { hash });
+
+      if (receipt.status === 'success') {
+        return {
+          success: true,
+          txHash: hash
+        };
+      } else {
+        return {
+          success: false,
+          error: 'Approval transaction failed or was reverted'
+        };
+      }
+    } catch (error: any) {
+      console.error('Approve cUSD error:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to approve cUSD'
+      };
+    }
+  }
+
+  /**
+   * Get cUSD balance for a user
+   */
+  async getCUSDBalance(userAddress: string): Promise<bigint> {
+    try {
+      const cUSDAddress = await this.getCUSDAddress();
+      if (!cUSDAddress || cUSDAddress === zeroAddress) {
+        return 0n;
+      }
+
+      const balance = await readContract(this.config, {
+        address: cUSDAddress,
+        abi: ERC20_ABI,
+        functionName: 'balanceOf',
+        args: [userAddress as Address],
+      }) as bigint;
+
+      return balance;
+    } catch (error) {
+      console.error('Get cUSD balance error:', error);
+      return 0n;
+    }
+  }
+
+  /**
+   * Place a prediction on a round (using cUSD)
    * @param roundId The round ID to predict on
    * @param predictsHigher True for Higher volatility, false for Lower
-   * @param stakeAmount Amount in CELO to stake (as string, will be converted to wei)
+   * @param stakeAmount Amount in cUSD to stake (as string, will be converted to wei)
    */
   async placePrediction(
     roundId: number,
     predictsHigher: boolean,
-    stakeAmount: string // Amount in CELO (will be converted to wei)
+    stakeAmount: string // Amount in cUSD (will be converted to wei)
   ): Promise<{ success: boolean; txHash?: string; error?: string }> {
     try {
       const account = getAccount(this.config);
@@ -129,12 +274,18 @@ export class VolatilityVanguardService {
 
       const stakeAmountWei = parseEther(stakeAmount);
 
+      // First, approve cUSD spending
+      const approvalResult = await this.approveCUSD(stakeAmountWei);
+      if (!approvalResult.success) {
+        return approvalResult;
+      }
+
+      // Place prediction with cUSD
       const hash = await writeContract(this.config, {
         address: VOLATILITY_VANGUARD_ADDRESS as Address,
         abi: VolatilityVanguardABI,
         functionName: 'placePrediction',
-        args: [BigInt(roundId), predictsHigher],
-        value: stakeAmountWei,
+        args: [BigInt(roundId), predictsHigher, stakeAmountWei],
       });
 
       // Wait for transaction receipt

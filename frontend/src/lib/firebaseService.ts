@@ -262,12 +262,33 @@ class FirebaseService {
     }
 
     try {
-      const docRef = doc(this.db, this.getUserPath('watchlist'), tokenId);
-      await deleteDoc(docRef);
-      return true;
+      // First, try to find the document by querying the collection
+      // This handles cases where the document ID might not match tokenId exactly
+      const watchlistRef = collection(this.db, this.getUserPath('watchlist'));
+      const snapshot = await getDocs(watchlistRef);
+      
+      // Find the document where tokenId matches
+      const docToDelete = snapshot.docs.find(doc => {
+        const data = doc.data();
+        return data.tokenId === tokenId || doc.id === tokenId;
+      });
+
+      if (docToDelete) {
+        await deleteDoc(docToDelete.ref);
+        return true;
+      } else {
+        // If not found by query, try direct deletion as fallback
+        const docRef = doc(this.db, this.getUserPath('watchlist'), tokenId);
+        await deleteDoc(docRef);
+        return true;
+      }
     } catch (error) {
       console.error('Failed to remove from watchlist:', error);
-      return false;
+      // Fallback to localStorage if Firebase fails
+      const watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+      const filtered = watchlist.filter((item: any) => item.tokenId !== tokenId);
+      localStorage.setItem('watchlist', JSON.stringify(filtered));
+      return true;
     }
   }
 
