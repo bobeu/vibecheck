@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/hooks/useWallet';
 import { useVolatilityVanguard } from '@/hooks/useVolatilityVanguard';
-import { useReadContract, useWriteContract, useSimulateContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useReadContract, useWriteContract, useSimulateContract, useWaitForTransactionReceipt, useChainId } from 'wagmi';
 import VolatilityVanguardABI from '@/abis/VolatilityVanguardABI.json';
-import { VOLATILITY_VANGUARD_ADDRESS } from '@/contracts/volatilityVanguardAddress';
+import { getVolatilityVanguardAddress, getVolatilityVanguardABI } from '@/contracts/volatilityVanguardAddress';
 import { parseEther, formatEther, zeroAddress } from 'viem';
 import { useToast } from '@/hooks/use-toast';
 import { useVolatilityPrediction } from '@/hooks/useVolatilityPrediction';
@@ -31,9 +31,14 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
   const { toast } = useToast();
   const { address, isConnected } = useWallet();
   const config = useConfig();
+  const chainId = useChainId();
   const [stakeAmount, setStakeAmount] = useState('0.1'); // Default stake in cUSD
   const [cUSDBalance, setCUSDBalance] = useState<bigint>(0n);
   const [isPlacing, setIsPlacing] = useState(false);
+  
+  // Get contract address and ABI based on current chainId
+  const VOLATILITY_VANGUARD_ADDRESS = getVolatilityVanguardAddress(chainId);
+  const VOLATILITY_VANGUARD_ABI = getVolatilityVanguardABI(chainId);
   
   // Create service instance
   const volatilityVanguardService = useMemo(() => {
@@ -64,11 +69,11 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
   // Read current round info using Wagmi
   const { data: roundInfo } = useReadContract({
     address: VOLATILITY_VANGUARD_ADDRESS as `0x${string}`,
-    abi: VolatilityVanguardABI,
+    abi: VOLATILITY_VANGUARD_ABI.length > 0 ? VOLATILITY_VANGUARD_ABI : VolatilityVanguardABI,
     functionName: 'getRoundInfo',
     args: currentRoundId > 0 ? [BigInt(currentRoundId)] : undefined,
     query: {
-      enabled: currentRoundId > 0 && VOLATILITY_VANGUARD_ADDRESS !== zeroAddress,
+      enabled: currentRoundId > 0 && VOLATILITY_VANGUARD_ADDRESS !== zeroAddress && VOLATILITY_VANGUARD_ABI.length > 0,
       refetchInterval: 10000, // Poll every 10 seconds
     },
   });
@@ -83,7 +88,7 @@ const VolatilityVanguard: React.FC<VolatilityVanguardProps> = ({
   
   const { data: claimSimulation } = useSimulateContract({
     address: VOLATILITY_VANGUARD_ADDRESS as `0x${string}`,
-    abi: VolatilityVanguardABI,
+    abi: VOLATILITY_VANGUARD_ABI.length > 0 ? VOLATILITY_VANGUARD_ABI : VolatilityVanguardABI,
     functionName: 'claimWinnings',
     args: claimableRounds.length > 0 ? [claimableRounds.map(id => BigInt(id))] : undefined,
     query: {

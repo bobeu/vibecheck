@@ -1,11 +1,30 @@
 import type { Config } from 'wagmi';
 import { readContract, writeContract, waitForTransactionReceipt } from 'wagmi/actions';
-import { getAccount, getPublicClient } from '@wagmi/core';
-import contractArtifacts from '@/constants/contract-artifacts.json';
-import VolatilityVanguardABI from '../abis/VolatilityVanguardABI.json';
-import { zeroAddress, parseEther, formatEther, type Address, maxUint256 } from 'viem';
+import { getAccount, getChainId } from '@wagmi/core';
+import { getVolatilityVanguardAddress, getVolatilityVanguardABI } from '@/contracts/volatilityVanguardAddress';
+import { zeroAddress, parseEther, type Address, maxUint256 } from 'viem';
 
-const VOLATILITY_VANGUARD_ADDRESS = contractArtifacts.contracts?.VolatilityVanguard?.address || zeroAddress;
+// Helper to get contract address based on current chainId
+const getContractAddress = (config: Config): Address => {
+  try {
+    const chainId = getChainId(config);
+    return getVolatilityVanguardAddress(chainId);
+  } catch (error) {
+    console.warn('Could not get chainId, using fallback');
+    return zeroAddress;
+  }
+};
+
+// Helper to get contract ABI based on current chainId
+const getContractABI = (config: Config): any[] => {
+  try {
+    const chainId = getChainId(config);
+    return getVolatilityVanguardABI(chainId);
+  } catch (error) {
+    console.warn('Could not get chainId for ABI, using fallback');
+    return [];
+  }
+};
 
 // ERC20 ABI for approve and balanceOf
 const ERC20_ABI = [
@@ -88,14 +107,21 @@ export class VolatilityVanguardService {
    */
   async getCurrentRoundId(): Promise<number> {
     try {
-      if (VOLATILITY_VANGUARD_ADDRESS === zeroAddress) {
+      const contractAddress = getContractAddress(this.config);
+      if (contractAddress === zeroAddress) {
+        return 0;
+      }
+
+      const contractABI = getContractABI(this.config);
+      if (contractABI.length === 0) {
         return 0;
       }
 
       const result = await readContract(this.config, {
-        address: VOLATILITY_VANGUARD_ADDRESS as Address,
-        abi: VolatilityVanguardABI,
+        address: contractAddress,
+        abi: contractABI,
         functionName: 'currentRoundId',
+        args: [],
       });
 
       return Number(result);
@@ -110,13 +136,19 @@ export class VolatilityVanguardService {
    */
   async getRoundInfo(roundId: number): Promise<RoundData | null> {
     try {
-      if (VOLATILITY_VANGUARD_ADDRESS === zeroAddress) {
+      const contractAddress = getContractAddress(this.config);
+      if (contractAddress === zeroAddress) {
+        return null;
+      }
+
+      const contractABI = getContractABI(this.config);
+      if (contractABI.length === 0) {
         return null;
       }
 
       const result = await readContract(this.config, {
-        address: VOLATILITY_VANGUARD_ADDRESS as Address,
-        abi: VolatilityVanguardABI,
+        address: contractAddress,
+        abi: contractABI,
         functionName: 'getRoundInfo',
         args: [BigInt(roundId)],
       }) as any;
@@ -143,15 +175,22 @@ export class VolatilityVanguardService {
    */
   async getCUSDAddress(): Promise<Address | null> {
     try {
-      if (VOLATILITY_VANGUARD_ADDRESS === zeroAddress) {
+      const contractAddress = getContractAddress(this.config);
+      if (contractAddress === zeroAddress) {
         return null;
       }
 
-      const cUSDAddress = await readContract(this.config, {
-        address: VOLATILITY_VANGUARD_ADDRESS as Address,
-        abi: VolatilityVanguardABI,
+      const contractABI = getContractABI(this.config);
+      if (contractABI.length === 0) {
+        return null;
+      }
+
+      const cUSDAddress = (await readContract(this.config, {
+        address: contractAddress,
+        abi: contractABI,
         functionName: 'cUSD',
-      }) as Address;
+        args: [],
+      })) as unknown as Address;
 
       return cUSDAddress;
     } catch (error) {
@@ -182,12 +221,20 @@ export class VolatilityVanguardService {
         };
       }
 
+      const contractAddress = getContractAddress(this.config);
+      if (contractAddress === zeroAddress) {
+        return {
+          success: false,
+          error: 'Contract address not found for current network'
+        };
+      }
+
       // Check current allowance
       const currentAllowance = await readContract(this.config, {
         address: cUSDAddress,
         abi: ERC20_ABI,
         functionName: 'allowance',
-        args: [account.address, VOLATILITY_VANGUARD_ADDRESS as Address],
+        args: [account.address, contractAddress],
       }) as bigint;
 
       // If allowance is sufficient, no need to approve
@@ -202,7 +249,7 @@ export class VolatilityVanguardService {
         address: cUSDAddress,
         abi: ERC20_ABI,
         functionName: 'approve',
-        args: [VOLATILITY_VANGUARD_ADDRESS as Address, maxUint256],
+        args: [contractAddress, maxUint256],
       });
 
       // Wait for transaction receipt
@@ -280,10 +327,26 @@ export class VolatilityVanguardService {
         return approvalResult;
       }
 
+      const contractAddress = getContractAddress(this.config);
+      if (contractAddress === zeroAddress) {
+        return {
+          success: false,
+          error: 'Contract address not found for current network'
+        };
+      }
+
+      const contractABI = getContractABI(this.config);
+      if (contractABI.length === 0) {
+        return {
+          success: false,
+          error: 'Contract ABI not found for current network'
+        };
+      }
+
       // Place prediction with cUSD
       const hash = await writeContract(this.config, {
-        address: VOLATILITY_VANGUARD_ADDRESS as Address,
-        abi: VolatilityVanguardABI,
+        address: contractAddress,
+        abi: contractABI,
         functionName: 'placePrediction',
         args: [BigInt(roundId), predictsHigher, stakeAmountWei],
       });
@@ -327,9 +390,25 @@ export class VolatilityVanguardService {
         };
       }
 
+      const contractAddress = getContractAddress(this.config);
+      if (contractAddress === zeroAddress) {
+        return {
+          success: false,
+          error: 'Contract address not found for current network'
+        };
+      }
+
+      const contractABI = getContractABI(this.config);
+      if (contractABI.length === 0) {
+        return {
+          success: false,
+          error: 'Contract ABI not found for current network'
+        };
+      }
+
       const hash = await writeContract(this.config, {
-        address: VOLATILITY_VANGUARD_ADDRESS as Address,
-        abi: VolatilityVanguardABI,
+        address: contractAddress,
+        abi: contractABI,
         functionName: 'claimWinnings',
         args: [roundIds.map(id => BigInt(id))],
       });
@@ -362,13 +441,19 @@ export class VolatilityVanguardService {
    */
   async getUserPrediction(roundId: number, userAddress: string): Promise<UserPrediction | null> {
     try {
-      if (VOLATILITY_VANGUARD_ADDRESS === zeroAddress) {
+      const contractAddress = getContractAddress(this.config);
+      if (contractAddress === zeroAddress) {
+        return null;
+      }
+
+      const contractABI = getContractABI(this.config);
+      if (contractABI.length === 0) {
         return null;
       }
 
       const result = await readContract(this.config, {
-        address: VOLATILITY_VANGUARD_ADDRESS as Address,
-        abi: VolatilityVanguardABI,
+        address: contractAddress,
+        abi: contractABI,
         functionName: 'getUserPrediction',
         args: [BigInt(roundId), userAddress as Address],
       }) as any;
@@ -390,13 +475,19 @@ export class VolatilityVanguardService {
    */
   async getUserRounds(userAddress: string, startRound: number, endRound: number): Promise<number[]> {
     try {
-      if (VOLATILITY_VANGUARD_ADDRESS === zeroAddress) {
+      const contractAddress = getContractAddress(this.config);
+      if (contractAddress === zeroAddress) {
+        return [];
+      }
+
+      const contractABI = getContractABI(this.config);
+      if (contractABI.length === 0) {
         return [];
       }
 
       const roundIds = await readContract(this.config, {
-        address: VOLATILITY_VANGUARD_ADDRESS as Address,
-        abi: VolatilityVanguardABI,
+        address: contractAddress,
+        abi: contractABI,
         functionName: 'getUserRounds',
         args: [userAddress as Address, BigInt(startRound), BigInt(endRound)],
       }) as bigint[];
@@ -413,15 +504,22 @@ export class VolatilityVanguardService {
    */
   async getOwner(): Promise<string | null> {
     try {
-      if (VOLATILITY_VANGUARD_ADDRESS === zeroAddress) {
+      const contractAddress = getContractAddress(this.config);
+      if (contractAddress === zeroAddress) {
+        return null;
+      }
+
+      const contractABI = getContractABI(this.config);
+      if (contractABI.length === 0) {
         return null;
       }
 
       const owner = await readContract(this.config, {
-        address: VOLATILITY_VANGUARD_ADDRESS as Address,
-        abi: VolatilityVanguardABI,
+        address: contractAddress,
+        abi: contractABI,
         functionName: 'owner',
-      }) as Address;
+        args: [],
+      }) as unknown as Address;
 
       return owner as string;
     } catch (error) {
@@ -441,36 +539,47 @@ export class VolatilityVanguardService {
     feeReceiver: string;
   } | null> {
     try {
-      if (VOLATILITY_VANGUARD_ADDRESS === zeroAddress) {
+      const contractAddress = getContractAddress(this.config);
+      if (contractAddress === zeroAddress) {
+        return null;
+      }
+
+      const contractABI = getContractABI(this.config);
+      if (contractABI.length === 0) {
         return null;
       }
 
       const [feeRate, riskThreshold, lockTime, oracleAddress, feeReceiver] = await Promise.all([
         readContract(this.config, {
-          address: VOLATILITY_VANGUARD_ADDRESS as Address,
-          abi: VolatilityVanguardABI,
+          address: contractAddress,
+          abi: contractABI,
           functionName: 'feeRate',
-        }) as Promise<bigint>,
+          args: [],
+        }) as unknown as Promise<bigint>,
         readContract(this.config, {
-          address: VOLATILITY_VANGUARD_ADDRESS as Address,
-          abi: VolatilityVanguardABI,
+          address: contractAddress,
+          abi: contractABI,
           functionName: 'riskThreshold',
-        }) as Promise<bigint>,
+          args: [],
+        }) as unknown as Promise<bigint>,
         readContract(this.config, {
-          address: VOLATILITY_VANGUARD_ADDRESS as Address,
-          abi: VolatilityVanguardABI,
+          address: contractAddress,
+          abi: contractABI,
           functionName: 'lockTime',
-        }) as Promise<bigint>,
+          args: [],
+        }) as unknown as Promise<bigint>,
         readContract(this.config, {
-          address: VOLATILITY_VANGUARD_ADDRESS as Address,
-          abi: VolatilityVanguardABI,
+          address: contractAddress,
+          abi: contractABI,
           functionName: 'oracleAddress',
-        }) as Promise<Address>,
+          args: [],
+        }) as unknown as Promise<Address>,
         readContract(this.config, {
-          address: VOLATILITY_VANGUARD_ADDRESS as Address,
-          abi: VolatilityVanguardABI,
+          address: contractAddress,
+          abi: contractABI,
           functionName: 'feeReceiver',
-        }) as Promise<Address>,
+          args: [],
+        }) as unknown as Promise<Address>,
       ]);
 
       return {

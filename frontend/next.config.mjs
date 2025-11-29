@@ -7,9 +7,7 @@ const nextConfig = {
     esmExternals: true,
   },
   // transpilePackages: ['undici', '@firebase/auth'],
-  // Empty turbopack config to silence the error - webpack config will be used when needed
-  turbopack: {},
-  webpack: (config) => {
+  webpack: (config, { webpack, isServer }) => {
     // Alias RN AsyncStorage to a web-friendly stub to satisfy MetaMask SDK in Next.js
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
@@ -18,6 +16,32 @@ const nextConfig = {
         'src/polyfills/asyncStorageStub.ts'
       ),
     }
+
+    // Use IgnorePlugin to ignore test files and other non-essential files from thread-stream
+    config.plugins = config.plugins || []
+    config.plugins.push(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^\.\/test/,
+        contextRegExp: /thread-stream/,
+      }),
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^\.\/bench/,
+        contextRegExp: /thread-stream/,
+      }),
+      new webpack.IgnorePlugin({
+        resourceRegExp: /LICENSE$/,
+        contextRegExp: /thread-stream/,
+      })
+    )
+
+    // Ignore warnings for problematic modules
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      {
+        module: /node_modules\/thread-stream/,
+      },
+    ]
+
     return config
   },
   output: 'standalone',

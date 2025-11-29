@@ -8,11 +8,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { VolatilityVanguardService } from '@/lib/volatilityVanguardService';
 import VolatilityVanguardABI from '@/abis/VolatilityVanguardABI.json';
-import contractArtifacts from '@/constants/contract-artifacts.json';
+import { getVolatilityVanguardAddress, getVolatilityVanguardABI } from '@/contracts/volatilityVanguardAddress';
 import { formatEther, parseEther, isAddress, zeroAddress, type Address } from 'viem';
 import { Settings, AlertTriangle, Clock, DollarSign, Users, TrendingUp, TrendingDown, Zap, Wallet, ArrowLeft } from 'lucide-react';
-
-const VOLATILITY_VANGUARD_ADDRESS = contractArtifacts.contracts?.VolatilityVanguard?.address || zeroAddress;
+import { useChainId } from 'wagmi';
 
 interface AdminPanelProps {
   onBack?: () => void;
@@ -22,6 +21,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
   const { toast } = useToast();
   const { address } = useAccount();
   const config = useConfig();
+  const chainId = useChainId();
   const [isOwner, setIsOwner] = useState<boolean>(false);
   const [isCheckingOwner, setIsCheckingOwner] = useState(true);
   const [contractOwner, setContractOwner] = useState<string | null>(null);
@@ -30,6 +30,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
   const [currentRoundId, setCurrentRoundId] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [isMounted, setIsMounted] = useState(false);
+  
+  // Get contract address and ABI based on current chainId
+  const VOLATILITY_VANGUARD_ADDRESS = getVolatilityVanguardAddress(chainId);
+  const VOLATILITY_VANGUARD_ABI = getVolatilityVanguardABI(chainId);
   
   // Form states for admin actions
   const [oracleAddress, setOracleAddress] = useState('');
@@ -352,36 +356,43 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
           currentRound={currentRound}
           currentRoundId={currentRoundId}
           contractAddress={VOLATILITY_VANGUARD_ADDRESS as Address}
+          contractABI={VOLATILITY_VANGUARD_ABI}
         />
 
         <SetOracleAddressAction 
           currentValue={contractConfig?.oracleAddress}
           contractAddress={VOLATILITY_VANGUARD_ADDRESS as Address}
+          contractABI={VOLATILITY_VANGUARD_ABI}
         />
 
         <SetFeeReceiverAction 
           currentValue={contractConfig?.feeReceiver}
           contractAddress={VOLATILITY_VANGUARD_ADDRESS as Address}
+          contractABI={VOLATILITY_VANGUARD_ABI}
         />
 
         <SetFeeRateAction 
           currentValue={contractConfig?.feeRate}
           contractAddress={VOLATILITY_VANGUARD_ADDRESS as Address}
+          contractABI={VOLATILITY_VANGUARD_ABI}
         />
 
         <SetRiskThresholdAction 
           currentValue={contractConfig?.riskThreshold}
           contractAddress={VOLATILITY_VANGUARD_ADDRESS as Address}
+          contractABI={VOLATILITY_VANGUARD_ABI}
         />
 
         <SetLockTimeAction 
           currentValue={contractConfig?.lockTime}
           contractAddress={VOLATILITY_VANGUARD_ADDRESS as Address}
+          contractABI={VOLATILITY_VANGUARD_ABI}
         />
 
         <EmergencyWithdrawAction 
           contractBalance={contractBalance?.value}
           contractAddress={VOLATILITY_VANGUARD_ADDRESS as Address}
+          contractABI={VOLATILITY_VANGUARD_ABI}
         />
       </div>
     </div>
@@ -394,7 +405,8 @@ const StartNewRoundAction: React.FC<{
   currentRound: any;
   currentRoundId: number;
   contractAddress: Address;
-}> = ({ canStart, currentRound, currentRoundId, contractAddress }) => {
+  contractABI: any[];
+}> = ({ canStart, currentRound, currentRoundId, contractAddress, contractABI }) => {
   const { toast } = useToast();
   const { data: hash, writeContract, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
@@ -402,8 +414,9 @@ const StartNewRoundAction: React.FC<{
   const handleStartRound = () => {
     writeContract({
       address: contractAddress,
-      abi: VolatilityVanguardABI,
+      abi: contractABI.length > 0 ? contractABI : VolatilityVanguardABI,
       functionName: 'startNewRound',
+      args: [],
     });
   };
 
@@ -464,7 +477,8 @@ const StartNewRoundAction: React.FC<{
 const SetOracleAddressAction: React.FC<{
   currentValue?: string;
   contractAddress: Address;
-}> = ({ currentValue, contractAddress }) => {
+  contractABI: any[];
+}> = ({ currentValue, contractAddress, contractABI }) => {
   const { toast } = useToast();
   const [address, setAddress] = useState('');
   const { data: hash, writeContract, isPending } = useWriteContract();
@@ -472,7 +486,7 @@ const SetOracleAddressAction: React.FC<{
 
   const { data: simulation } = useSimulateContract({
     address: contractAddress,
-    abi: VolatilityVanguardABI,
+    abi: contractABI.length > 0 ? contractABI : VolatilityVanguardABI,
     functionName: 'setOracleAddress',
     args: [address as Address],
     query: {
@@ -499,7 +513,7 @@ const SetOracleAddressAction: React.FC<{
     }
     writeContract({
       address: contractAddress,
-      abi: VolatilityVanguardABI,
+      abi: contractABI.length > 0 ? contractABI : VolatilityVanguardABI,
       functionName: 'setOracleAddress',
       args: [address as Address],
     });
@@ -570,7 +584,8 @@ const SetOracleAddressAction: React.FC<{
 const SetFeeReceiverAction: React.FC<{
   currentValue?: string;
   contractAddress: Address;
-}> = ({ currentValue, contractAddress }) => {
+  contractABI: any[];
+}> = ({ currentValue, contractAddress, contractABI }) => {
   const { toast } = useToast();
   const [address, setAddress] = useState('');
   const { data: hash, writeContract, isPending } = useWriteContract();
@@ -578,7 +593,7 @@ const SetFeeReceiverAction: React.FC<{
 
   const { data: simulation } = useSimulateContract({
     address: contractAddress,
-    abi: VolatilityVanguardABI,
+    abi: contractABI.length > 0 ? contractABI : VolatilityVanguardABI,
     functionName: 'setFeeReceiver',
     args: [address as Address],
     query: {
@@ -605,7 +620,7 @@ const SetFeeReceiverAction: React.FC<{
     }
     writeContract({
       address: contractAddress,
-      abi: VolatilityVanguardABI,
+      abi: contractABI.length > 0 ? contractABI : VolatilityVanguardABI,
       functionName: 'setFeeReceiver',
       args: [address as Address],
     });
@@ -676,7 +691,8 @@ const SetFeeReceiverAction: React.FC<{
 const SetFeeRateAction: React.FC<{
   currentValue?: bigint;
   contractAddress: Address;
-}> = ({ currentValue, contractAddress }) => {
+  contractABI: any[];
+}> = ({ currentValue, contractAddress, contractABI }) => {
   const { toast } = useToast();
   const [rate, setRate] = useState('');
   const { data: hash, writeContract, isPending } = useWriteContract();
@@ -688,7 +704,7 @@ const SetFeeRateAction: React.FC<{
 
   const { data: simulation } = useSimulateContract({
     address: contractAddress,
-    abi: VolatilityVanguardABI,
+    abi: contractABI.length > 0 ? contractABI : VolatilityVanguardABI,
     functionName: 'setFeeRate',
     args: [BigInt(rateInBasisPoints)],
     query: {
@@ -715,7 +731,7 @@ const SetFeeRateAction: React.FC<{
     }
     writeContract({
       address: contractAddress,
-      abi: VolatilityVanguardABI,
+      abi: contractABI.length > 0 ? contractABI : VolatilityVanguardABI,
       functionName: 'setFeeRate',
       args: [BigInt(rateInBasisPoints)],
     });
@@ -788,7 +804,8 @@ const SetFeeRateAction: React.FC<{
 const SetRiskThresholdAction: React.FC<{
   currentValue?: bigint;
   contractAddress: Address;
-}> = ({ currentValue, contractAddress }) => {
+  contractABI: any[];
+}> = ({ currentValue, contractAddress, contractABI }) => {
   const { toast } = useToast();
   const [threshold, setThreshold] = useState('');
   const { data: hash, writeContract, isPending } = useWriteContract();
@@ -800,7 +817,7 @@ const SetRiskThresholdAction: React.FC<{
 
   const { data: simulation } = useSimulateContract({
     address: contractAddress,
-    abi: VolatilityVanguardABI,
+    abi: contractABI.length > 0 ? contractABI : VolatilityVanguardABI,
     functionName: 'setRiskThreshold',
     args: [BigInt(thresholdInBasisPoints)],
     query: {
@@ -827,7 +844,7 @@ const SetRiskThresholdAction: React.FC<{
     }
     writeContract({
       address: contractAddress,
-      abi: VolatilityVanguardABI,
+      abi: contractABI.length > 0 ? contractABI : VolatilityVanguardABI,
       functionName: 'setRiskThreshold',
       args: [BigInt(thresholdInBasisPoints)],
     });
@@ -899,7 +916,8 @@ const SetRiskThresholdAction: React.FC<{
 const SetLockTimeAction: React.FC<{
   currentValue?: bigint;
   contractAddress: Address;
-}> = ({ currentValue, contractAddress }) => {
+  contractABI: any[];
+}> = ({ currentValue, contractAddress, contractABI }) => {
   const { toast } = useToast();
   const [time, setTime] = useState('');
   const { data: hash, writeContract, isPending } = useWriteContract();
@@ -911,7 +929,7 @@ const SetLockTimeAction: React.FC<{
 
   const { data: simulation } = useSimulateContract({
     address: contractAddress,
-    abi: VolatilityVanguardABI,
+    abi: contractABI.length > 0 ? contractABI : VolatilityVanguardABI,
     functionName: 'setLockTime',
     args: [BigInt(timeInSeconds)],
     query: {
@@ -947,7 +965,7 @@ const SetLockTimeAction: React.FC<{
     }
     writeContract({
       address: contractAddress,
-      abi: VolatilityVanguardABI,
+      abi: contractABI.length > 0 ? contractABI : VolatilityVanguardABI,
       functionName: 'setLockTime',
       args: [BigInt(timeInSeconds)],
     });
@@ -1024,7 +1042,8 @@ const SetLockTimeAction: React.FC<{
 const EmergencyWithdrawAction: React.FC<{
   contractBalance?: bigint;
   contractAddress: Address;
-}> = ({ contractBalance, contractAddress }) => {
+  contractABI: any[];
+}> = ({ contractBalance, contractAddress, contractABI }) => {
   const { toast } = useToast();
   const [confirmText, setConfirmText] = useState('');
   const { data: hash, writeContract, isPending } = useWriteContract();
@@ -1035,7 +1054,7 @@ const EmergencyWithdrawAction: React.FC<{
 
   const { data: simulation } = useSimulateContract({
     address: contractAddress,
-    abi: VolatilityVanguardABI,
+    abi: contractABI.length > 0 ? contractABI : VolatilityVanguardABI,
     functionName: 'emergencyWithdraw',
     query: {
       enabled: isEnabled as any,
@@ -1053,8 +1072,9 @@ const EmergencyWithdrawAction: React.FC<{
     }
     writeContract({
       address: contractAddress,
-      abi: VolatilityVanguardABI,
+      abi: contractABI.length > 0 ? contractABI : VolatilityVanguardABI,
       functionName: 'emergencyWithdraw',
+      args: [],
     });
   };
 

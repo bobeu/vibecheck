@@ -1,6 +1,26 @@
 // @ts-ignore - ethers types may not be fully recognized by TypeScript
 import { ethers } from 'ethers';
-import { getNetworkConfig, CELO_MAINNET_CONFIG, CELO_TESTNET_CONFIG } from './config';
+
+// Network configurations (using Wagmi for actual network interactions)
+const CELO_MAINNET_CONFIG = {
+  chainId: 42220,
+  name: 'Celo',
+  ticker: 'CELO',
+  atomicUnit: 'wei',
+  decimals: 18,
+  rpcUrl: 'https://forno.celo.org',
+  explorerUrl: 'https://explorer.celo.org'
+};
+
+const CELO_TESTNET_CONFIG = {
+  chainId: 11142220,
+  name: 'Celo Sepolia',
+  ticker: 'CELO',
+  atomicUnit: 'wei',
+  decimals: 18,
+  rpcUrl: 'https://forno.celo-sepolia.celo-testnet.org',
+  explorerUrl: 'https://celo-sepolia.blockscout.com'
+};
 
 // Initialize providers only on client side
 let providers: { [chainId: number]: ethers.providers.JsonRpcProvider } = {};
@@ -11,6 +31,10 @@ if (typeof window !== 'undefined') {
 }
 
 export { providers };
+
+const getNetworkConfig = () => {
+  return CELO_TESTNET_CONFIG;
+};
 
 export function formatTokenAmount(amount: string | number, precision: number = 18): string {
   if (
