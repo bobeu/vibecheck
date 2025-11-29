@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Star, Search, ArrowLeft, Eye, Plus, Settings } from 'lucide-react';
+import { Star, Search, ArrowLeft, Eye, Plus, Settings, HelpCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,6 +16,7 @@ import PaymentModal from '@/components/PaymentModal';
 import DetailedReport from '@/components/DetailedReport';
 import Watchlist from '@/components/Watchlist';
 import AdminPanel from '@/components/AdminPanel';
+import Onboarding from '@/components/Onboarding';
 import { vibeService, type TokenInfo, type VibrancyData, type DetailedReport as ReportType } from '@/lib/vibeService';
 import { paymentService } from '@/lib/paymentService';
 import { isMiniPay, isFarcaster, isExternalWallet } from '@/lib/wagmi';
@@ -31,6 +32,20 @@ const Home = () => {
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [hasReportAccess, setHasReportAccess] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Check if user has seen onboarding before
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem('vibecheck-onboarding-seen');
+    if (!hasSeenOnboarding) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  const handleContinueFromOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('vibecheck-onboarding-seen', 'true');
+  };
 
   useEffect(() => {
     loadWatchlist();
@@ -154,8 +169,23 @@ const Home = () => {
     setHasReportAccess(false);
   };
 
+  // Show onboarding if enabled
+  if (showOnboarding) {
+    return <Onboarding onContinue={handleContinueFromOnboarding} />;
+  }
+
   return (
     <div className="min-h-screen gradient-bg">
+      {/* Floating Help Button */}
+      <Button
+        onClick={() => setShowOnboarding(true)}
+        className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full shadow-lg bg-celo hover:bg-celo/90 text-primary-foreground animate-bounce"
+        size="icon"
+        aria-label="Show onboarding"
+      >
+        <HelpCircle className="w-6 h-6" />
+      </Button>
+
       <div className="container max-w-md mx-auto px-4 py-6">
         {/* Header */}
         <div className="text-start mb-8">
