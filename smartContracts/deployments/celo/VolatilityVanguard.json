@@ -1,0 +1,1229 @@
+{
+  "address": "0x8f8D7E508EdBa7aDE54072D41186A8108deB2c81",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_cUSDAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_oracleAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_feeReceiver",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_feeRate",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_riskThreshold",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_lockTime",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableInvalidOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ReentrancyGuardReentrantCall",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        }
+      ],
+      "name": "SafeERC20FailedOperation",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "roundId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "feeAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "FeeCollected",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "roundId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "predictsHigher",
+          "type": "bool"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "PredictionPlaced",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "roundId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "result",
+          "type": "uint8"
+        }
+      ],
+      "name": "RoundSettled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "roundId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "startTime",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "lockTime",
+          "type": "uint256"
+        }
+      ],
+      "name": "RoundStarted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "roundId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "payoutAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "WinningsClaimed",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "cUSD",
+      "outputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "_roundIds",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "claimWinnings",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "currentRoundId",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "emergencyWithdraw",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "feeCollected",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "feeRate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "feeReceiver",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_roundId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getRoundInfo",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "startTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "roundLockTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "closeTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "isSettled",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalPool",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalHigherStaked",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalLowerStaked",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint8",
+          "name": "result",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_roundId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        }
+      ],
+      "name": "getUserPrediction",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "hasPredictedInRound",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "predictsHigher",
+          "type": "bool"
+        },
+        {
+          "internalType": "bool",
+          "name": "hasClaimedReward",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_startRound",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_endRound",
+          "type": "uint256"
+        }
+      ],
+      "name": "getUserRounds",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "hasClaimed",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "hasPredicted",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lockTime",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "oracleAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_roundId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "_predictsHigher",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "placePrediction",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "predictedHigher",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "riskThreshold",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "rounds",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "startTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lockTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "closeTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "isSettled",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalPool",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalHigherStaked",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalLowerStaked",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint8",
+          "name": "result",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_feeRate",
+          "type": "uint256"
+        }
+      ],
+      "name": "setFeeRate",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_feeReceiver",
+          "type": "address"
+        }
+      ],
+      "name": "setFeeReceiver",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_lockTime",
+          "type": "uint256"
+        }
+      ],
+      "name": "setLockTime",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_oracleAddress",
+          "type": "address"
+        }
+      ],
+      "name": "setOracleAddress",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_riskThreshold",
+          "type": "uint256"
+        }
+      ],
+      "name": "setRiskThreshold",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_roundId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint8",
+          "name": "_result",
+          "type": "uint8"
+        }
+      ],
+      "name": "settleRound",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "stakedAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "startNewRound",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x1799f7c35212a1006fe62f2800d99bbd4631cba2e8888b30abd16be2f3a63f11",
+  "receipt": {
+    "to": null,
+    "from": "0xb2ADb77A837d19c3adA396Db74483B05D49AD6b7",
+    "contractAddress": "0x8f8D7E508EdBa7aDE54072D41186A8108deB2c81",
+    "transactionIndex": 2,
+    "gasUsed": "1755174",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000800000800000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000001000000000020000000000000000000000000020000000000000000000800000000001000000000000000000000400000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000020000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x4ec7098812b78cef7a1451db9c14205ca489415a5d3bc2f62b9ed4e11d0f4afe",
+    "transactionHash": "0x1799f7c35212a1006fe62f2800d99bbd4631cba2e8888b30abd16be2f3a63f11",
+    "logs": [
+      {
+        "transactionIndex": 2,
+        "blockNumber": 52473153,
+        "transactionHash": "0x1799f7c35212a1006fe62f2800d99bbd4631cba2e8888b30abd16be2f3a63f11",
+        "address": "0x8f8D7E508EdBa7aDE54072D41186A8108deB2c81",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x000000000000000000000000b2adb77a837d19c3ada396db74483b05d49ad6b7"
+        ],
+        "data": "0x",
+        "logIndex": 1,
+        "blockHash": "0x4ec7098812b78cef7a1451db9c14205ca489415a5d3bc2f62b9ed4e11d0f4afe"
+      }
+    ],
+    "blockNumber": 52473153,
+    "cumulativeGasUsed": "1845071",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0x765DE816845861e75A25fCA122bb6898B8B1282a",
+    "0xb2ADb77A837d19c3adA396Db74483B05D49AD6b7",
+    "0xb2ADb77A837d19c3adA396Db74483B05D49AD6b7",
+    250,
+    150,
+    604800
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "b745be624befd9397a0c7648deca6cc2",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.28+commit.7893614a\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_cUSDAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_oracleAddress\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_feeReceiver\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_feeRate\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_riskThreshold\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_lockTime\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ReentrancyGuardReentrantCall\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"}],\"name\":\"SafeERC20FailedOperation\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"roundId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"feeAmount\",\"type\":\"uint256\"}],\"name\":\"FeeCollected\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"roundId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"predictsHigher\",\"type\":\"bool\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"PredictionPlaced\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"roundId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"result\",\"type\":\"uint8\"}],\"name\":\"RoundSettled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"roundId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"startTime\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"lockTime\",\"type\":\"uint256\"}],\"name\":\"RoundStarted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"roundId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"payoutAmount\",\"type\":\"uint256\"}],\"name\":\"WinningsClaimed\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"cUSD\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"_roundIds\",\"type\":\"uint256[]\"}],\"name\":\"claimWinnings\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"currentRoundId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"emergencyWithdraw\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"feeCollected\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"feeRate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"feeReceiver\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_roundId\",\"type\":\"uint256\"}],\"name\":\"getRoundInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"startTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"roundLockTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"closeTime\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"isSettled\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"totalPool\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalHigherStaked\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalLowerStaked\",\"type\":\"uint256\"},{\"internalType\":\"uint8\",\"name\":\"result\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_roundId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_user\",\"type\":\"address\"}],\"name\":\"getUserPrediction\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"hasPredictedInRound\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"predictsHigher\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"hasClaimedReward\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_user\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_startRound\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_endRound\",\"type\":\"uint256\"}],\"name\":\"getUserRounds\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"hasClaimed\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"hasPredicted\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"lockTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"oracleAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_roundId\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"_predictsHigher\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"placePrediction\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"predictedHigher\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"riskThreshold\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"rounds\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"startTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"lockTime\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"closeTime\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"isSettled\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"totalPool\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalHigherStaked\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalLowerStaked\",\"type\":\"uint256\"},{\"internalType\":\"uint8\",\"name\":\"result\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_feeRate\",\"type\":\"uint256\"}],\"name\":\"setFeeRate\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_feeReceiver\",\"type\":\"address\"}],\"name\":\"setFeeReceiver\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_lockTime\",\"type\":\"uint256\"}],\"name\":\"setLockTime\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_oracleAddress\",\"type\":\"address\"}],\"name\":\"setOracleAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_riskThreshold\",\"type\":\"uint256\"}],\"name\":\"setRiskThreshold\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_roundId\",\"type\":\"uint256\"},{\"internalType\":\"uint8\",\"name\":\"_result\",\"type\":\"uint8\"}],\"name\":\"settleRound\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"stakedAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"startNewRound\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Round-based prediction market for token volatility using cUSD ERC20 token\",\"errors\":{\"OwnableInvalidOwner(address)\":[{\"details\":\"The owner is not a valid owner account. (eg. `address(0)`)\"}],\"OwnableUnauthorizedAccount(address)\":[{\"details\":\"The caller account is not authorized to perform an operation.\"}],\"ReentrancyGuardReentrantCall()\":[{\"details\":\"Unauthorized reentrant call.\"}],\"SafeERC20FailedOperation(address)\":[{\"details\":\"An operation with an ERC-20 token failed.\"}]},\"kind\":\"dev\",\"methods\":{\"claimWinnings(uint256[])\":{\"details\":\"Claim winnings for settled rounds (Public, Pull-based)\",\"params\":{\"_roundIds\":\"Array of round IDs to claim winnings for\"}},\"constructor\":{\"details\":\"Constructor\",\"params\":{\"_cUSDAddress\":\"Address of the cUSD ERC20 token contract\",\"_feeRate\":\"Fee rate in basis points (e.g., 250 = 2.50%)\",\"_feeReceiver\":\"Address to receive fees\",\"_lockTime\":\"Lock time in seconds\",\"_oracleAddress\":\"Address authorized to settle rounds\",\"_riskThreshold\":\"Risk threshold in basis points (e.g., 150 = 1.5%)\"}},\"emergencyWithdraw()\":{\"details\":\"Emergency withdraw (OnlyOwner) - for stuck cUSD funds\"},\"getRoundInfo(uint256)\":{\"details\":\"Get round information (Public/View)\",\"params\":{\"_roundId\":\"The round ID to query\"}},\"getUserPrediction(uint256,address)\":{\"details\":\"Get user's prediction for a specific round\",\"params\":{\"_roundId\":\"The round ID\",\"_user\":\"The user address\"}},\"getUserRounds(address,uint256,uint256)\":{\"details\":\"Get user's rounds with predictions\",\"params\":{\"_endRound\":\"Ending round ID (inclusive)\",\"_startRound\":\"Starting round ID (inclusive)\",\"_user\":\"The user address\"}},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"placePrediction(uint256,bool,uint256)\":{\"details\":\"Place a prediction (Public)\",\"params\":{\"_amount\":\"Amount of cUSD to stake (must be approved beforehand)\",\"_predictsHigher\":\"True for Higher volatility, false for Lower volatility\",\"_roundId\":\"The round ID to predict on\"}},\"renounceOwnership()\":{\"details\":\"Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner.\"},\"setFeeRate(uint256)\":{\"details\":\"Update fee rate (OnlyOwner)\",\"params\":{\"_feeRate\":\"New fee rate in basis points (max 10000 = 100%)\"}},\"setFeeReceiver(address)\":{\"details\":\"Update fee receiver address (OnlyOwner)\"},\"setLockTime(uint256)\":{\"details\":\"Update lock time (OnlyOwner)\",\"params\":{\"_lockTime\":\"New lock time in seconds\"}},\"setOracleAddress(address)\":{\"details\":\"Update oracle address (OnlyOwner)\"},\"setRiskThreshold(uint256)\":{\"details\":\"Update risk threshold (OnlyOwner)\",\"params\":{\"_riskThreshold\":\"New risk threshold in basis points\"}},\"settleRound(uint256,uint8)\":{\"details\":\"Settle a round (Admin/OnlyOracle)\",\"params\":{\"_result\":\"The outcome: 1=Higher, 2=Lower\",\"_roundId\":\"The round ID to settle\"}},\"startNewRound()\":{\"details\":\"Start a new prediction round (Admin/OnlyOwner)\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"}},\"title\":\"VolatilityVanguard\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"claimWinnings(uint256[])\":{\"notice\":\"CRITICAL: Fee is transferred to feeReceiver before user payout\"},\"placePrediction(uint256,bool,uint256)\":{\"notice\":\"User must approve this contract to spend cUSD before calling this function\"},\"startNewRound()\":{\"notice\":\"Can only start a new round if:         - No rounds exist yet (currentRoundId == 0), OR         - Current round is settled, OR         - Current round's lockTime has elapsed\"}},\"notice\":\"Uses Inverse Liquidity Pool model with fees taken from losing pool\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/VolatilityVanguard.sol\":\"VolatilityVanguard\"},\"evmVersion\":\"prague\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/access/Ownable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.0) (access/Ownable.sol)\\n\\npragma solidity ^0.8.20;\\n\\nimport {Context} from \\\"../utils/Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * The initial owner is set to the address provided by the deployer. This can\\n * later be changed with {transferOwnership}.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\nabstract contract Ownable is Context {\\n    address private _owner;\\n\\n    /**\\n     * @dev The caller account is not authorized to perform an operation.\\n     */\\n    error OwnableUnauthorizedAccount(address account);\\n\\n    /**\\n     * @dev The owner is not a valid owner account. (eg. `address(0)`)\\n     */\\n    error OwnableInvalidOwner(address owner);\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the address provided by the deployer as the initial owner.\\n     */\\n    constructor(address initialOwner) {\\n        if (initialOwner == address(0)) {\\n            revert OwnableInvalidOwner(address(0));\\n        }\\n        _transferOwnership(initialOwner);\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        _checkOwner();\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view virtual returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if the sender is not the owner.\\n     */\\n    function _checkOwner() internal view virtual {\\n        if (owner() != _msgSender()) {\\n            revert OwnableUnauthorizedAccount(_msgSender());\\n        }\\n    }\\n\\n    /**\\n     * @dev Leaves the contract without owner. It will not be possible to call\\n     * `onlyOwner` functions. Can only be called by the current owner.\\n     *\\n     * NOTE: Renouncing ownership will leave the contract without an owner,\\n     * thereby disabling any functionality that is only available to the owner.\\n     */\\n    function renounceOwnership() public virtual onlyOwner {\\n        _transferOwnership(address(0));\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public virtual onlyOwner {\\n        if (newOwner == address(0)) {\\n            revert OwnableInvalidOwner(address(0));\\n        }\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Internal function without access restriction.\\n     */\\n    function _transferOwnership(address newOwner) internal virtual {\\n        address oldOwner = _owner;\\n        _owner = newOwner;\\n        emit OwnershipTransferred(oldOwner, newOwner);\\n    }\\n}\\n\",\"keccak256\":\"0xff6d0bb2e285473e5311d9d3caacb525ae3538a80758c10649a4d61029b017bb\",\"license\":\"MIT\"},\"@openzeppelin/contracts/interfaces/IERC1363.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.4.0) (interfaces/IERC1363.sol)\\n\\npragma solidity >=0.6.2;\\n\\nimport {IERC20} from \\\"./IERC20.sol\\\";\\nimport {IERC165} from \\\"./IERC165.sol\\\";\\n\\n/**\\n * @title IERC1363\\n * @dev Interface of the ERC-1363 standard as defined in the https://eips.ethereum.org/EIPS/eip-1363[ERC-1363].\\n *\\n * Defines an extension interface for ERC-20 tokens that supports executing code on a recipient contract\\n * after `transfer` or `transferFrom`, or code on a spender contract after `approve`, in a single transaction.\\n */\\ninterface IERC1363 is IERC20, IERC165 {\\n    /*\\n     * Note: the ERC-165 identifier for this interface is 0xb0202a11.\\n     * 0xb0202a11 ===\\n     *   bytes4(keccak256('transferAndCall(address,uint256)')) ^\\n     *   bytes4(keccak256('transferAndCall(address,uint256,bytes)')) ^\\n     *   bytes4(keccak256('transferFromAndCall(address,address,uint256)')) ^\\n     *   bytes4(keccak256('transferFromAndCall(address,address,uint256,bytes)')) ^\\n     *   bytes4(keccak256('approveAndCall(address,uint256)')) ^\\n     *   bytes4(keccak256('approveAndCall(address,uint256,bytes)'))\\n     */\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from the caller's account to `to`\\n     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.\\n     * @param to The address which you want to transfer to.\\n     * @param value The amount of tokens to be transferred.\\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\\n     */\\n    function transferAndCall(address to, uint256 value) external returns (bool);\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from the caller's account to `to`\\n     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.\\n     * @param to The address which you want to transfer to.\\n     * @param value The amount of tokens to be transferred.\\n     * @param data Additional data with no specified format, sent in call to `to`.\\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\\n     */\\n    function transferAndCall(address to, uint256 value, bytes calldata data) external returns (bool);\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from `from` to `to` using the allowance mechanism\\n     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.\\n     * @param from The address which you want to send tokens from.\\n     * @param to The address which you want to transfer to.\\n     * @param value The amount of tokens to be transferred.\\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\\n     */\\n    function transferFromAndCall(address from, address to, uint256 value) external returns (bool);\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from `from` to `to` using the allowance mechanism\\n     * and then calls {IERC1363Receiver-onTransferReceived} on `to`.\\n     * @param from The address which you want to send tokens from.\\n     * @param to The address which you want to transfer to.\\n     * @param value The amount of tokens to be transferred.\\n     * @param data Additional data with no specified format, sent in call to `to`.\\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\\n     */\\n    function transferFromAndCall(address from, address to, uint256 value, bytes calldata data) external returns (bool);\\n\\n    /**\\n     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the\\n     * caller's tokens and then calls {IERC1363Spender-onApprovalReceived} on `spender`.\\n     * @param spender The address which will spend the funds.\\n     * @param value The amount of tokens to be spent.\\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\\n     */\\n    function approveAndCall(address spender, uint256 value) external returns (bool);\\n\\n    /**\\n     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the\\n     * caller's tokens and then calls {IERC1363Spender-onApprovalReceived} on `spender`.\\n     * @param spender The address which will spend the funds.\\n     * @param value The amount of tokens to be spent.\\n     * @param data Additional data with no specified format, sent in call to `spender`.\\n     * @return A boolean value indicating whether the operation succeeded unless throwing.\\n     */\\n    function approveAndCall(address spender, uint256 value, bytes calldata data) external returns (bool);\\n}\\n\",\"keccak256\":\"0xd5ea07362ab630a6a3dee4285a74cf2377044ca2e4be472755ad64d7c5d4b69d\",\"license\":\"MIT\"},\"@openzeppelin/contracts/interfaces/IERC165.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.4.0) (interfaces/IERC165.sol)\\n\\npragma solidity >=0.4.16;\\n\\nimport {IERC165} from \\\"../utils/introspection/IERC165.sol\\\";\\n\",\"keccak256\":\"0x0afcb7e740d1537b252cb2676f600465ce6938398569f09ba1b9ca240dde2dfc\",\"license\":\"MIT\"},\"@openzeppelin/contracts/interfaces/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.4.0) (interfaces/IERC20.sol)\\n\\npragma solidity >=0.4.16;\\n\\nimport {IERC20} from \\\"../token/ERC20/IERC20.sol\\\";\\n\",\"keccak256\":\"0x1a6221315ce0307746c2c4827c125d821ee796c74a676787762f4778671d4f44\",\"license\":\"MIT\"},\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.4.0) (token/ERC20/IERC20.sol)\\n\\npragma solidity >=0.4.16;\\n\\n/**\\n * @dev Interface of the ERC-20 standard as defined in the ERC.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n\\n    /**\\n     * @dev Returns the value of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the value of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from the caller's account to `to`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address to, uint256 value) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the\\n     * caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 value) external returns (bool);\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from `from` to `to` using the\\n     * allowance mechanism. `value` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(address from, address to, uint256 value) external returns (bool);\\n}\\n\",\"keccak256\":\"0x74ed01eb66b923d0d0cfe3be84604ac04b76482a55f9dd655e1ef4d367f95bc2\",\"license\":\"MIT\"},\"@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.3.0) (token/ERC20/utils/SafeERC20.sol)\\n\\npragma solidity ^0.8.20;\\n\\nimport {IERC20} from \\\"../IERC20.sol\\\";\\nimport {IERC1363} from \\\"../../../interfaces/IERC1363.sol\\\";\\n\\n/**\\n * @title SafeERC20\\n * @dev Wrappers around ERC-20 operations that throw on failure (when the token\\n * contract returns false). Tokens that return no value (and instead revert or\\n * throw on failure) are also supported, non-reverting calls are assumed to be\\n * successful.\\n * To use this library you can add a `using SafeERC20 for IERC20;` statement to your contract,\\n * which allows you to call the safe operations as `token.safeTransfer(...)`, etc.\\n */\\nlibrary SafeERC20 {\\n    /**\\n     * @dev An operation with an ERC-20 token failed.\\n     */\\n    error SafeERC20FailedOperation(address token);\\n\\n    /**\\n     * @dev Indicates a failed `decreaseAllowance` request.\\n     */\\n    error SafeERC20FailedDecreaseAllowance(address spender, uint256 currentAllowance, uint256 requestedDecrease);\\n\\n    /**\\n     * @dev Transfer `value` amount of `token` from the calling contract to `to`. If `token` returns no value,\\n     * non-reverting calls are assumed to be successful.\\n     */\\n    function safeTransfer(IERC20 token, address to, uint256 value) internal {\\n        _callOptionalReturn(token, abi.encodeCall(token.transfer, (to, value)));\\n    }\\n\\n    /**\\n     * @dev Transfer `value` amount of `token` from `from` to `to`, spending the approval given by `from` to the\\n     * calling contract. If `token` returns no value, non-reverting calls are assumed to be successful.\\n     */\\n    function safeTransferFrom(IERC20 token, address from, address to, uint256 value) internal {\\n        _callOptionalReturn(token, abi.encodeCall(token.transferFrom, (from, to, value)));\\n    }\\n\\n    /**\\n     * @dev Variant of {safeTransfer} that returns a bool instead of reverting if the operation is not successful.\\n     */\\n    function trySafeTransfer(IERC20 token, address to, uint256 value) internal returns (bool) {\\n        return _callOptionalReturnBool(token, abi.encodeCall(token.transfer, (to, value)));\\n    }\\n\\n    /**\\n     * @dev Variant of {safeTransferFrom} that returns a bool instead of reverting if the operation is not successful.\\n     */\\n    function trySafeTransferFrom(IERC20 token, address from, address to, uint256 value) internal returns (bool) {\\n        return _callOptionalReturnBool(token, abi.encodeCall(token.transferFrom, (from, to, value)));\\n    }\\n\\n    /**\\n     * @dev Increase the calling contract's allowance toward `spender` by `value`. If `token` returns no value,\\n     * non-reverting calls are assumed to be successful.\\n     *\\n     * IMPORTANT: If the token implements ERC-7674 (ERC-20 with temporary allowance), and if the \\\"client\\\"\\n     * smart contract uses ERC-7674 to set temporary allowances, then the \\\"client\\\" smart contract should avoid using\\n     * this function. Performing a {safeIncreaseAllowance} or {safeDecreaseAllowance} operation on a token contract\\n     * that has a non-zero temporary allowance (for that particular owner-spender) will result in unexpected behavior.\\n     */\\n    function safeIncreaseAllowance(IERC20 token, address spender, uint256 value) internal {\\n        uint256 oldAllowance = token.allowance(address(this), spender);\\n        forceApprove(token, spender, oldAllowance + value);\\n    }\\n\\n    /**\\n     * @dev Decrease the calling contract's allowance toward `spender` by `requestedDecrease`. If `token` returns no\\n     * value, non-reverting calls are assumed to be successful.\\n     *\\n     * IMPORTANT: If the token implements ERC-7674 (ERC-20 with temporary allowance), and if the \\\"client\\\"\\n     * smart contract uses ERC-7674 to set temporary allowances, then the \\\"client\\\" smart contract should avoid using\\n     * this function. Performing a {safeIncreaseAllowance} or {safeDecreaseAllowance} operation on a token contract\\n     * that has a non-zero temporary allowance (for that particular owner-spender) will result in unexpected behavior.\\n     */\\n    function safeDecreaseAllowance(IERC20 token, address spender, uint256 requestedDecrease) internal {\\n        unchecked {\\n            uint256 currentAllowance = token.allowance(address(this), spender);\\n            if (currentAllowance < requestedDecrease) {\\n                revert SafeERC20FailedDecreaseAllowance(spender, currentAllowance, requestedDecrease);\\n            }\\n            forceApprove(token, spender, currentAllowance - requestedDecrease);\\n        }\\n    }\\n\\n    /**\\n     * @dev Set the calling contract's allowance toward `spender` to `value`. If `token` returns no value,\\n     * non-reverting calls are assumed to be successful. Meant to be used with tokens that require the approval\\n     * to be set to zero before setting it to a non-zero value, such as USDT.\\n     *\\n     * NOTE: If the token implements ERC-7674, this function will not modify any temporary allowance. This function\\n     * only sets the \\\"standard\\\" allowance. Any temporary allowance will remain active, in addition to the value being\\n     * set here.\\n     */\\n    function forceApprove(IERC20 token, address spender, uint256 value) internal {\\n        bytes memory approvalCall = abi.encodeCall(token.approve, (spender, value));\\n\\n        if (!_callOptionalReturnBool(token, approvalCall)) {\\n            _callOptionalReturn(token, abi.encodeCall(token.approve, (spender, 0)));\\n            _callOptionalReturn(token, approvalCall);\\n        }\\n    }\\n\\n    /**\\n     * @dev Performs an {ERC1363} transferAndCall, with a fallback to the simple {ERC20} transfer if the target has no\\n     * code. This can be used to implement an {ERC721}-like safe transfer that rely on {ERC1363} checks when\\n     * targeting contracts.\\n     *\\n     * Reverts if the returned value is other than `true`.\\n     */\\n    function transferAndCallRelaxed(IERC1363 token, address to, uint256 value, bytes memory data) internal {\\n        if (to.code.length == 0) {\\n            safeTransfer(token, to, value);\\n        } else if (!token.transferAndCall(to, value, data)) {\\n            revert SafeERC20FailedOperation(address(token));\\n        }\\n    }\\n\\n    /**\\n     * @dev Performs an {ERC1363} transferFromAndCall, with a fallback to the simple {ERC20} transferFrom if the target\\n     * has no code. This can be used to implement an {ERC721}-like safe transfer that rely on {ERC1363} checks when\\n     * targeting contracts.\\n     *\\n     * Reverts if the returned value is other than `true`.\\n     */\\n    function transferFromAndCallRelaxed(\\n        IERC1363 token,\\n        address from,\\n        address to,\\n        uint256 value,\\n        bytes memory data\\n    ) internal {\\n        if (to.code.length == 0) {\\n            safeTransferFrom(token, from, to, value);\\n        } else if (!token.transferFromAndCall(from, to, value, data)) {\\n            revert SafeERC20FailedOperation(address(token));\\n        }\\n    }\\n\\n    /**\\n     * @dev Performs an {ERC1363} approveAndCall, with a fallback to the simple {ERC20} approve if the target has no\\n     * code. This can be used to implement an {ERC721}-like safe transfer that rely on {ERC1363} checks when\\n     * targeting contracts.\\n     *\\n     * NOTE: When the recipient address (`to`) has no code (i.e. is an EOA), this function behaves as {forceApprove}.\\n     * Opposedly, when the recipient address (`to`) has code, this function only attempts to call {ERC1363-approveAndCall}\\n     * once without retrying, and relies on the returned value to be true.\\n     *\\n     * Reverts if the returned value is other than `true`.\\n     */\\n    function approveAndCallRelaxed(IERC1363 token, address to, uint256 value, bytes memory data) internal {\\n        if (to.code.length == 0) {\\n            forceApprove(token, to, value);\\n        } else if (!token.approveAndCall(to, value, data)) {\\n            revert SafeERC20FailedOperation(address(token));\\n        }\\n    }\\n\\n    /**\\n     * @dev Imitates a Solidity high-level call (i.e. a regular function call to a contract), relaxing the requirement\\n     * on the return value: the return value is optional (but if data is returned, it must not be false).\\n     * @param token The token targeted by the call.\\n     * @param data The call data (encoded using abi.encode or one of its variants).\\n     *\\n     * This is a variant of {_callOptionalReturnBool} that reverts if call fails to meet the requirements.\\n     */\\n    function _callOptionalReturn(IERC20 token, bytes memory data) private {\\n        uint256 returnSize;\\n        uint256 returnValue;\\n        assembly (\\\"memory-safe\\\") {\\n            let success := call(gas(), token, 0, add(data, 0x20), mload(data), 0, 0x20)\\n            // bubble errors\\n            if iszero(success) {\\n                let ptr := mload(0x40)\\n                returndatacopy(ptr, 0, returndatasize())\\n                revert(ptr, returndatasize())\\n            }\\n            returnSize := returndatasize()\\n            returnValue := mload(0)\\n        }\\n\\n        if (returnSize == 0 ? address(token).code.length == 0 : returnValue != 1) {\\n            revert SafeERC20FailedOperation(address(token));\\n        }\\n    }\\n\\n    /**\\n     * @dev Imitates a Solidity high-level call (i.e. a regular function call to a contract), relaxing the requirement\\n     * on the return value: the return value is optional (but if data is returned, it must not be false).\\n     * @param token The token targeted by the call.\\n     * @param data The call data (encoded using abi.encode or one of its variants).\\n     *\\n     * This is a variant of {_callOptionalReturn} that silently catches all reverts and returns a bool instead.\\n     */\\n    function _callOptionalReturnBool(IERC20 token, bytes memory data) private returns (bool) {\\n        bool success;\\n        uint256 returnSize;\\n        uint256 returnValue;\\n        assembly (\\\"memory-safe\\\") {\\n            success := call(gas(), token, 0, add(data, 0x20), mload(data), 0, 0x20)\\n            returnSize := returndatasize()\\n            returnValue := mload(0)\\n        }\\n        return success && (returnSize == 0 ? address(token).code.length > 0 : returnValue == 1);\\n    }\\n}\\n\",\"keccak256\":\"0x982c5cb790ab941d1e04f807120a71709d4c313ba0bfc16006447ffbd27fbbd5\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Context.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.1) (utils/Context.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\nabstract contract Context {\\n    function _msgSender() internal view virtual returns (address) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view virtual returns (bytes calldata) {\\n        return msg.data;\\n    }\\n\\n    function _contextSuffixLength() internal view virtual returns (uint256) {\\n        return 0;\\n    }\\n}\\n\",\"keccak256\":\"0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/ReentrancyGuard.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.1.0) (utils/ReentrancyGuard.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev Contract module that helps prevent reentrant calls to a function.\\n *\\n * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier\\n * available, which can be applied to functions to make sure there are no nested\\n * (reentrant) calls to them.\\n *\\n * Note that because there is a single `nonReentrant` guard, functions marked as\\n * `nonReentrant` may not call one another. This can be worked around by making\\n * those functions `private`, and then adding `external` `nonReentrant` entry\\n * points to them.\\n *\\n * TIP: If EIP-1153 (transient storage) is available on the chain you're deploying at,\\n * consider using {ReentrancyGuardTransient} instead.\\n *\\n * TIP: If you would like to learn more about reentrancy and alternative ways\\n * to protect against it, check out our blog post\\n * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].\\n */\\nabstract contract ReentrancyGuard {\\n    // Booleans are more expensive than uint256 or any type that takes up a full\\n    // word because each write operation emits an extra SLOAD to first read the\\n    // slot's contents, replace the bits taken up by the boolean, and then write\\n    // back. This is the compiler's defense against contract upgrades and\\n    // pointer aliasing, and it cannot be disabled.\\n\\n    // The values being non-zero value makes deployment a bit more expensive,\\n    // but in exchange the refund on every call to nonReentrant will be lower in\\n    // amount. Since refunds are capped to a percentage of the total\\n    // transaction's gas, it is best to keep them low in cases like this one, to\\n    // increase the likelihood of the full refund coming into effect.\\n    uint256 private constant NOT_ENTERED = 1;\\n    uint256 private constant ENTERED = 2;\\n\\n    uint256 private _status;\\n\\n    /**\\n     * @dev Unauthorized reentrant call.\\n     */\\n    error ReentrancyGuardReentrantCall();\\n\\n    constructor() {\\n        _status = NOT_ENTERED;\\n    }\\n\\n    /**\\n     * @dev Prevents a contract from calling itself, directly or indirectly.\\n     * Calling a `nonReentrant` function from another `nonReentrant`\\n     * function is not supported. It is possible to prevent this from happening\\n     * by making the `nonReentrant` function external, and making it call a\\n     * `private` function that does the actual work.\\n     */\\n    modifier nonReentrant() {\\n        _nonReentrantBefore();\\n        _;\\n        _nonReentrantAfter();\\n    }\\n\\n    function _nonReentrantBefore() private {\\n        // On the first call to nonReentrant, _status will be NOT_ENTERED\\n        if (_status == ENTERED) {\\n            revert ReentrancyGuardReentrantCall();\\n        }\\n\\n        // Any calls to nonReentrant after this point will fail\\n        _status = ENTERED;\\n    }\\n\\n    function _nonReentrantAfter() private {\\n        // By storing the original value once again, a refund is triggered (see\\n        // https://eips.ethereum.org/EIPS/eip-2200)\\n        _status = NOT_ENTERED;\\n    }\\n\\n    /**\\n     * @dev Returns true if the reentrancy guard is currently set to \\\"entered\\\", which indicates there is a\\n     * `nonReentrant` function in the call stack.\\n     */\\n    function _reentrancyGuardEntered() internal view returns (bool) {\\n        return _status == ENTERED;\\n    }\\n}\\n\",\"keccak256\":\"0x11a5a79827df29e915a12740caf62fe21ebe27c08c9ae3e09abe9ee3ba3866d3\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/introspection/IERC165.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.4.0) (utils/introspection/IERC165.sol)\\n\\npragma solidity >=0.4.16;\\n\\n/**\\n * @dev Interface of the ERC-165 standard, as defined in the\\n * https://eips.ethereum.org/EIPS/eip-165[ERC].\\n *\\n * Implementers can declare support of contract interfaces, which can then be\\n * queried by others ({ERC165Checker}).\\n *\\n * For an implementation, see {ERC165}.\\n */\\ninterface IERC165 {\\n    /**\\n     * @dev Returns true if this contract implements the interface defined by\\n     * `interfaceId`. See the corresponding\\n     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[ERC section]\\n     * to learn more about how these ids are created.\\n     *\\n     * This function call must use less than 30 000 gas.\\n     */\\n    function supportsInterface(bytes4 interfaceId) external view returns (bool);\\n}\\n\",\"keccak256\":\"0x8891738ffe910f0cf2da09566928589bf5d63f4524dd734fd9cedbac3274dd5c\",\"license\":\"MIT\"},\"contracts/VolatilityVanguard.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.28;\\n\\nimport { ReentrancyGuard } from \\\"@openzeppelin/contracts/utils/ReentrancyGuard.sol\\\";\\nimport { Ownable } from \\\"@openzeppelin/contracts/access/Ownable.sol\\\";\\nimport { IERC20 } from \\\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\\";\\nimport { SafeERC20 } from \\\"@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol\\\";\\n\\n/**\\n * @title VolatilityVanguard\\n * @dev Round-based prediction market for token volatility using cUSD ERC20 token\\n * @notice Uses Inverse Liquidity Pool model with fees taken from losing pool\\n */\\ncontract VolatilityVanguard is ReentrancyGuard, Ownable {\\n    using SafeERC20 for IERC20;\\n    \\n    // Global State Variables\\n    IERC20 public cUSD; // cUSD token contract\\n    address public oracleAddress;\\n    address public feeReceiver;\\n    uint256 public feeRate; // Fee rate in basis points (e.g., 250 = 2.50%, denominator = 10000)\\n    uint256 public currentRoundId;\\n    uint256 public riskThreshold; // Percentage change threshold (e.g., 150 = 1.5%, denominator = 10000)\\n    uint256 public lockTime; // Duration in seconds that a round stays open\\n    \\n    // Round Structure\\n    struct Round {\\n        uint256 id;\\n        uint256 startTime;\\n        uint256 lockTime;\\n        uint256 closeTime; // Time when settlement is called\\n        bool isSettled;\\n        uint256 totalPool; // Total cUSD staked in this round\\n        uint256 totalHigherStaked; // Total cUSD staked on Higher\\n        uint256 totalLowerStaked; // Total cUSD staked on Lower\\n        uint8 result; // 0=Pending, 1=Higher, 2=Lower\\n    }\\n    \\n    // Mappings\\n    mapping(uint256 => Round) public rounds;\\n    mapping(uint256 => mapping(address => bool)) public hasPredicted;\\n    mapping(uint256 => mapping(address => uint256)) public stakedAmount;\\n    mapping(uint256 => mapping(address => bool)) public predictedHigher;\\n    mapping(uint256 => mapping(address => bool)) public hasClaimed; // Track if user has claimed for a round\\n    mapping(uint256 => bool) public feeCollected; // Track if fee has been collected for a round\\n    \\n    // Events\\n    event RoundStarted(uint256 indexed roundId, uint256 startTime, uint256 lockTime);\\n    event PredictionPlaced(\\n        uint256 indexed roundId,\\n        address indexed user,\\n        bool predictsHigher,\\n        uint256 amount\\n    );\\n    event RoundSettled(uint256 indexed roundId, uint8 result);\\n    event WinningsClaimed(\\n        uint256 indexed roundId,\\n        address indexed user,\\n        uint256 payoutAmount\\n    );\\n    event FeeCollected(uint256 indexed roundId, uint256 feeAmount);\\n    \\n    // Modifiers\\n    modifier onlyOracle() {\\n        require(msg.sender == oracleAddress, \\\"Only oracle can call this\\\");\\n        _;\\n    }\\n    \\n    modifier validRound(uint256 _roundId) {\\n        require(_roundId > 0 && _roundId <= currentRoundId, \\\"Invalid round ID\\\");\\n        _;\\n    }\\n    \\n    /**\\n     * @dev Constructor\\n     * @param _cUSDAddress Address of the cUSD ERC20 token contract\\n     * @param _oracleAddress Address authorized to settle rounds\\n     * @param _feeReceiver Address to receive fees\\n     * @param _feeRate Fee rate in basis points (e.g., 250 = 2.50%)\\n     * @param _riskThreshold Risk threshold in basis points (e.g., 150 = 1.5%)\\n     * @param _lockTime Lock time in seconds\\n     */\\n    constructor(\\n        address _cUSDAddress,\\n        address _oracleAddress,\\n        address _feeReceiver,\\n        uint256 _feeRate,\\n        uint256 _riskThreshold,\\n        uint256 _lockTime\\n    ) Ownable(_msgSender()) {\\n        require(_cUSDAddress != address(0), \\\"Invalid cUSD address\\\");\\n        require(_oracleAddress != address(0), \\\"Invalid oracle address\\\");\\n        require(_feeReceiver != address(0), \\\"Invalid fee receiver address\\\");\\n        require(_feeRate <= 10000, \\\"Fee rate cannot exceed 100%\\\");\\n        \\n        cUSD = IERC20(_cUSDAddress);\\n        oracleAddress = _oracleAddress;\\n        feeReceiver = _feeReceiver;\\n        feeRate = _feeRate;\\n        riskThreshold = _riskThreshold;\\n        lockTime = _lockTime;\\n    }\\n    \\n    /**\\n     * @dev Start a new prediction round (Admin/OnlyOwner)\\n     * @notice Can only start a new round if:\\n     *         - No rounds exist yet (currentRoundId == 0), OR\\n     *         - Current round is settled, OR\\n     *         - Current round's lockTime has elapsed\\n     */\\n    function startNewRound() external onlyOwner {\\n        // Guard: Prevent starting new round if current round is still open\\n        if (currentRoundId > 0) {\\n            Round storage currentRound = rounds[currentRoundId];\\n            require(\\n                currentRound.isSettled || \\n                block.timestamp >= currentRound.startTime + currentRound.lockTime,\\n                \\\"Cannot start new round: current round is still open for predictions\\\"\\n            );\\n        }\\n        \\n        currentRoundId++;\\n        \\n        rounds[currentRoundId] = Round({\\n            id: currentRoundId,\\n            startTime: block.timestamp,\\n            lockTime: lockTime,\\n            closeTime: 0,\\n            isSettled: false,\\n            totalPool: 0,\\n            totalHigherStaked: 0,\\n            totalLowerStaked: 0,\\n            result: 0 // Pending\\n        });\\n        \\n        emit RoundStarted(currentRoundId, block.timestamp, lockTime);\\n    }\\n    \\n    /**\\n     * @dev Get round information (Public/View)\\n     * @param _roundId The round ID to query\\n     */\\n    function getRoundInfo(uint256 _roundId)\\n        external\\n        view\\n        validRound(_roundId)\\n        returns (\\n            uint256 id,\\n            uint256 startTime,\\n            uint256 roundLockTime,\\n            uint256 closeTime,\\n            bool isSettled,\\n            uint256 totalPool,\\n            uint256 totalHigherStaked,\\n            uint256 totalLowerStaked,\\n            uint8 result\\n        )\\n    {\\n        Round storage round = rounds[_roundId];\\n        return (\\n            round.id,\\n            round.startTime,\\n            round.lockTime,\\n            round.closeTime,\\n            round.isSettled,\\n            round.totalPool,\\n            round.totalHigherStaked,\\n            round.totalLowerStaked,\\n            round.result\\n        );\\n    }\\n    \\n    /**\\n     * @dev Place a prediction (Public)\\n     * @param _roundId The round ID to predict on\\n     * @param _predictsHigher True for Higher volatility, false for Lower volatility\\n     * @param _amount Amount of cUSD to stake (must be approved beforehand)\\n     * @notice User must approve this contract to spend cUSD before calling this function\\n     */\\n    function placePrediction(uint256 _roundId, bool _predictsHigher, uint256 _amount)\\n        external\\n        nonReentrant\\n        validRound(_roundId)\\n    {\\n        Round storage round = rounds[_roundId];\\n        \\n        // Pre-checks\\n        require(_roundId == currentRoundId, \\\"Round is not current\\\");\\n        require(block.timestamp < round.startTime + round.lockTime, \\\"Round is locked\\\");\\n        require(_amount > 0, \\\"Stake amount must be greater than zero\\\");\\n        require(!hasPredicted[_roundId][msg.sender], \\\"User has already predicted in this round\\\");\\n        require(!round.isSettled, \\\"Round is already settled\\\");\\n        \\n        // Transfer cUSD from user to contract\\n        cUSD.safeTransferFrom(msg.sender, address(this), _amount);\\n        \\n        // Update round totals\\n        round.totalPool += _amount;\\n        if (_predictsHigher) {\\n            round.totalHigherStaked += _amount;\\n        } else {\\n            round.totalLowerStaked += _amount;\\n        }\\n        \\n        // Update user mappings\\n        hasPredicted[_roundId][msg.sender] = true;\\n        stakedAmount[_roundId][msg.sender] = _amount;\\n        predictedHigher[_roundId][msg.sender] = _predictsHigher;\\n        \\n        emit PredictionPlaced(_roundId, msg.sender, _predictsHigher, _amount);\\n    }\\n    \\n    /**\\n     * @dev Settle a round (Admin/OnlyOracle)\\n     * @param _roundId The round ID to settle\\n     * @param _result The outcome: 1=Higher, 2=Lower\\n     */\\n    function settleRound(uint256 _roundId, uint8 _result)\\n        external\\n        onlyOracle\\n        validRound(_roundId)\\n    {\\n        Round storage round = rounds[_roundId];\\n        \\n        // Pre-checks\\n        require(block.timestamp >= round.startTime + round.lockTime, \\\"Round lock time not elapsed\\\");\\n        require(!round.isSettled, \\\"Round is already settled\\\");\\n        require(_result == 1 || _result == 2, \\\"Invalid result (must be 1 or 2)\\\");\\n        \\n        // Set settlement\\n        round.isSettled = true;\\n        round.result = _result;\\n        round.closeTime = block.timestamp;\\n        \\n        emit RoundSettled(_roundId, _result);\\n    }\\n    \\n    /**\\n     * @dev Claim winnings for settled rounds (Public, Pull-based)\\n     * @param _roundIds Array of round IDs to claim winnings for\\n     * @notice CRITICAL: Fee is transferred to feeReceiver before user payout\\n     */\\n    function claimWinnings(uint256[] memory _roundIds)\\n        external\\n        nonReentrant\\n    {\\n        for (uint256 i = 0; i < _roundIds.length; i++) {\\n            uint256 roundId = _roundIds[i];\\n            \\n            // Validate round\\n            require(roundId > 0 && roundId <= currentRoundId, \\\"Invalid round ID\\\");\\n            Round storage round = rounds[roundId];\\n            require(round.isSettled, \\\"Round is not settled\\\");\\n            require(hasPredicted[roundId][msg.sender], \\\"User did not predict in this round\\\");\\n            require(!hasClaimed[roundId][msg.sender], \\\"User has already claimed for this round\\\");\\n            \\n            // Check if user won\\n            bool userWon = false;\\n            if (round.result == 1 && predictedHigher[roundId][msg.sender]) {\\n                userWon = true; // Higher won, user predicted Higher\\n            } else if (round.result == 2 && !predictedHigher[roundId][msg.sender]) {\\n                userWon = true; // Lower won, user predicted Lower\\n            }\\n            \\n            if (userWon) {\\n                uint256 userStake = stakedAmount[roundId][msg.sender];\\n                \\n                // Determine winning and losing pools\\n                uint256 winningPool = round.result == 1 \\n                    ? round.totalHigherStaked \\n                    : round.totalLowerStaked;\\n                uint256 losingPool = round.result == 1 \\n                    ? round.totalLowerStaked \\n                    : round.totalHigherStaked;\\n                \\n                // Calculate fee from losing pool (only on first claim for this round)\\n                uint256 feeAmount = 0;\\n                if (!feeCollected[roundId] && losingPool > 0 && feeRate > 0) {\\n                    feeAmount = (losingPool * feeRate) / 10000;\\n                    \\n                    // Transfer fee to feeReceiver (only once per round)\\n                    if (feeAmount > 0) {\\n                        cUSD.safeTransfer(feeReceiver, feeAmount);\\n                        feeCollected[roundId] = true;\\n                        emit FeeCollected(roundId, feeAmount);\\n                    }\\n                }\\n                \\n                // Calculate payout using Inverse Liquidity Pool model\\n                // Payout = S * ((L - Fee) / W) + S\\n                // Where S = user stake, L = losing pool, W = winning pool\\n                uint256 netLosingPool = losingPool - feeAmount;\\n                uint256 payoutAmount = 0;\\n                \\n                if (winningPool > 0 && netLosingPool > 0) {\\n                    // Calculate winnings: S * (L - Fee) / W\\n                    uint256 winnings = (userStake * netLosingPool) / winningPool;\\n                    // Total payout = stake + winnings\\n                    payoutAmount = userStake + winnings;\\n                } else {\\n                    // If no winning pool or no losing pool, return stake only\\n                    payoutAmount = userStake;\\n                }\\n                \\n                // Transfer winnings to user\\n                require(payoutAmount > 0, \\\"Payout amount must be greater than zero\\\");\\n                cUSD.safeTransfer(msg.sender, payoutAmount);\\n                \\n                // Mark as claimed\\n                hasClaimed[roundId][msg.sender] = true;\\n                \\n                emit WinningsClaimed(roundId, msg.sender, payoutAmount);\\n            } else {\\n                // User lost, mark as claimed (no payout)\\n                hasClaimed[roundId][msg.sender] = true;\\n            }\\n        }\\n    }\\n    \\n    /**\\n     * @dev Get user's prediction for a specific round\\n     * @param _roundId The round ID\\n     * @param _user The user address\\n     */\\n    function getUserPrediction(uint256 _roundId, address _user)\\n        external\\n        view\\n        validRound(_roundId)\\n        returns (\\n            bool hasPredictedInRound,\\n            uint256 amount,\\n            bool predictsHigher,\\n            bool hasClaimedReward\\n        )\\n    {\\n        return (\\n            hasPredicted[_roundId][_user],\\n            stakedAmount[_roundId][_user],\\n            predictedHigher[_roundId][_user],\\n            hasClaimed[_roundId][_user]\\n        );\\n    }\\n    \\n    /**\\n     * @dev Get user's rounds with predictions\\n     * @param _user The user address\\n     * @param _startRound Starting round ID (inclusive)\\n     * @param _endRound Ending round ID (inclusive)\\n     */\\n    function getUserRounds(address _user, uint256 _startRound, uint256 _endRound)\\n        external\\n        view\\n        returns (uint256[] memory)\\n    {\\n        require(_endRound >= _startRound, \\\"Invalid range\\\");\\n        require(_endRound <= currentRoundId, \\\"End round exceeds current round\\\");\\n        \\n        uint256 count = 0;\\n        for (uint256 i = _startRound; i <= _endRound; i++) {\\n            if (hasPredicted[i][_user]) {\\n                count++;\\n            }\\n        }\\n        \\n        uint256[] memory userRounds = new uint256[](count);\\n        uint256 index = 0;\\n        \\n        for (uint256 i = _startRound; i <= _endRound; i++) {\\n            if (hasPredicted[i][_user]) {\\n                userRounds[index] = i;\\n                index++;\\n            }\\n        }\\n        \\n        return userRounds;\\n    }\\n    \\n    // Admin Functions\\n    \\n    /**\\n     * @dev Update oracle address (OnlyOwner)\\n     */\\n    function setOracleAddress(address _oracleAddress) external onlyOwner {\\n        require(_oracleAddress != address(0), \\\"Invalid oracle address\\\");\\n        oracleAddress = _oracleAddress;\\n    }\\n    \\n    /**\\n     * @dev Update fee receiver address (OnlyOwner)\\n     */\\n    function setFeeReceiver(address _feeReceiver) external onlyOwner {\\n        require(_feeReceiver != address(0), \\\"Invalid fee receiver address\\\");\\n        feeReceiver = _feeReceiver;\\n    }\\n    \\n    /**\\n     * @dev Update fee rate (OnlyOwner)\\n     * @param _feeRate New fee rate in basis points (max 10000 = 100%)\\n     */\\n    function setFeeRate(uint256 _feeRate) external onlyOwner {\\n        require(_feeRate <= 10000, \\\"Fee rate cannot exceed 100%\\\");\\n        feeRate = _feeRate;\\n    }\\n    \\n    /**\\n     * @dev Update risk threshold (OnlyOwner)\\n     * @param _riskThreshold New risk threshold in basis points\\n     */\\n    function setRiskThreshold(uint256 _riskThreshold) external onlyOwner {\\n        riskThreshold = _riskThreshold;\\n    }\\n    \\n    /**\\n     * @dev Update lock time (OnlyOwner)\\n     * @param _lockTime New lock time in seconds\\n     */\\n    function setLockTime(uint256 _lockTime) external onlyOwner {\\n        lockTime = _lockTime;\\n    }\\n    \\n    /**\\n     * @dev Emergency withdraw (OnlyOwner) - for stuck cUSD funds\\n     */\\n    function emergencyWithdraw() external onlyOwner {\\n        uint256 balance = cUSD.balanceOf(address(this));\\n        require(balance > 0, \\\"No funds to withdraw\\\");\\n        cUSD.safeTransfer(owner(), balance);\\n    }\\n}\\n\",\"keccak256\":\"0x181446687160925693d142f411cd8c27d61da85c600f3dbfb9dbd5fe4c2195a9\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561000f575f5ffd5b50604051611e27380380611e2783398101604081905261002e91610274565b60015f55338061005857604051631e4fbdf760e01b81525f60048201526024015b60405180910390fd5b61006181610208565b506001600160a01b0386166100b85760405162461bcd60e51b815260206004820152601460248201527f496e76616c696420635553442061646472657373000000000000000000000000604482015260640161004f565b6001600160a01b03851661010e5760405162461bcd60e51b815260206004820152601660248201527f496e76616c6964206f7261636c65206164647265737300000000000000000000604482015260640161004f565b6001600160a01b0384166101645760405162461bcd60e51b815260206004820152601c60248201527f496e76616c696420666565207265636569766572206164647265737300000000604482015260640161004f565b6127108311156101b65760405162461bcd60e51b815260206004820152601b60248201527f46656520726174652063616e6e6f742065786365656420313030250000000000604482015260640161004f565b600280546001600160a01b03199081166001600160a01b0398891617909155600380548216968816969096179095556004805490951693909516929092179092556005919091556007556008556102d2565b600180546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0905f90a35050565b80516001600160a01b038116811461026f575f5ffd5b919050565b5f5f5f5f5f5f60c08789031215610289575f5ffd5b61029287610259565b95506102a060208801610259565b94506102ae60408801610259565b6060880151608089015160a090990151979a96995090979096909590945092505050565b611b48806102df5f395ff3fe608060405234801561000f575f5ffd5b50600436106101c6575f3560e01c80638da5cb5b116100fe578063b3f006741161009e578063db2e21bc1161006e578063db2e21bc146104c4578063dc8ea32f146104cc578063efdcd974146104f9578063f2fde38b1461050c575f5ffd5b8063b3f0067414610476578063b43e6cb414610489578063b85502a014610492578063bd85948c146104bc575f5ffd5b80639cbe5efd116100d95780639cbe5efd14610434578063a89ae4ba1461043d578063aa28306a14610450578063ae04d45d14610463575f5ffd5b80638da5cb5b146103fa578063951fd6001461040b578063978bbdb91461042b575f5ffd5b80636ac28cb31161016957806385d6b4261161014457806385d6b426146102e9578063873f6f9e1461031657806388c3ffb0146103435780638c65c81f1461039d575f5ffd5b80636ac28cb3146102915780637083d1c2146102ce578063715018a6146102e1575f5ffd5b80631fccf672116101a45780631fccf6721461022d578063268ec7341461025857806345596e2e1461026b5780634c69c00f1461027e575f5ffd5b80630d668087146101ca578063173eb57f146101e65780631bf0ade014610218575b5f5ffd5b6101d360085481565b6040519081526020015b60405180910390f35b6102086101f43660046117f9565b600e6020525f908152604090205460ff1681565b60405190151581526020016101dd565b61022b610226366004611824565b61051f565b005b600254610240906001600160a01b031681565b6040516001600160a01b0390911681526020016101dd565b61022b6102663660046118ec565b6109cf565b61022b6102793660046117f9565b610ce8565b61022b61028c366004611940565b610d47565b6102a461029f366004611960565b610dc0565b604080519415158552602085019390935290151591830191909152151560608201526080016101dd565b61022b6102dc3660046117f9565b610e69565b61022b610e76565b6102086102f7366004611960565b600a60209081525f928352604080842090915290825290205460ff1681565b610208610324366004611960565b600d60209081525f928352604080842090915290825290205460ff1681565b6103566103513660046117f9565b610e89565b60408051998a5260208a0198909852968801959095526060870193909352901515608086015260a085015260c084015260e083015260ff16610100820152610120016101dd565b6103566103ab3660046117f9565b60096020525f9081526040902080546001820154600283015460038401546004850154600586015460068701546007880154600890980154969795969495939460ff9384169492939192911689565b6001546001600160a01b0316610240565b61041e61041936600461198a565b610f1b565b6040516101dd91906119ba565b6101d360055481565b6101d360065481565b600354610240906001600160a01b031681565b61022b61045e3660046119fc565b6110c8565b61022b6104713660046117f9565b6112d4565b600454610240906001600160a01b031681565b6101d360075481565b6101d36104a0366004611960565b600b60209081525f928352604080842090915290825290205481565b61022b6112e1565b61022b6114ad565b6102086104da366004611960565b600c60209081525f928352604080842090915290825290205460ff1681565b61022b610507366004611940565b61158f565b61022b61051a366004611940565b61160f565b610527611649565b5f5b81518110156109c2575f82828151811061054557610545611a2f565b602002602001015190505f8111801561056057506006548111155b6105855760405162461bcd60e51b815260040161057c90611a43565b60405180910390fd5b5f818152600960205260409020600481015460ff166105dd5760405162461bcd60e51b8152602060048201526014602482015273149bdd5b99081a5cc81b9bdd081cd95d1d1b195960621b604482015260640161057c565b5f828152600a6020908152604080832033845290915290205460ff166106505760405162461bcd60e51b815260206004820152602260248201527f5573657220646964206e6f74207072656469637420696e207468697320726f756044820152611b9960f21b606482015260840161057c565b5f828152600d6020908152604080832033845290915290205460ff16156106c95760405162461bcd60e51b815260206004820152602760248201527f557365722068617320616c726561647920636c61696d656420666f72207468696044820152661cc81c9bdd5b9960ca1b606482015260840161057c565b60088101545f9060ff1660011480156106fa57505f838152600c6020908152604080832033845290915290205460ff165b1561070757506001610740565b600882015460ff16600214801561073757505f838152600c6020908152604080832033845290915290205460ff16155b15610740575060015b8015610993575f838152600b60209081526040808320338452909152812054600884015490919060ff1660011461077b578360070154610781565b83600601545b60088501549091505f9060ff1660011461079f5784600601546107a5565b84600701545b5f878152600e60205260408120549192509060ff161580156107c657505f82115b80156107d357505f600554115b1561086d57612710600554836107e99190611a81565b6107f39190611a9e565b9050801561086d57600454600254610818916001600160a01b03918216911683611671565b5f878152600e602052604090819020805460ff191660011790555187907faf7c505ee772ec188af7067e1f73db08ab028e3d564273442b907742b9c41fa0906108649084815260200190565b60405180910390a25b5f6108788284611abd565b90505f841580159061088957505f82115b156108b8575f8561089a8489611a81565b6108a49190611a9e565b90506108b08188611ad0565b9150506108bb565b50845b5f811161091a5760405162461bcd60e51b815260206004820152602760248201527f5061796f757420616d6f756e74206d7573742062652067726561746572207468604482015266616e207a65726f60c81b606482015260840161057c565b600254610931906001600160a01b03163383611671565b5f898152600d602090815260408083203380855290835292819020805460ff19166001179055518381528b917f5380cf6fe903b40c6d5a9e0dfbca2f3a423f0a21520b4d5947ed5169bdba946d910160405180910390a35050505050506109b7565b5f838152600d602090815260408083203384529091529020805460ff191660011790555b505050600101610529565b506109cc60015f55565b50565b6109d7611649565b825f811180156109e957506006548111155b610a055760405162461bcd60e51b815260040161057c90611a43565b5f8481526009602052604090206006548514610a5a5760405162461bcd60e51b8152602060048201526014602482015273149bdd5b99081a5cc81b9bdd0818dd5c9c995b9d60621b604482015260640161057c565b80600201548160010154610a6e9190611ad0565b4210610aae5760405162461bcd60e51b815260206004820152600f60248201526e149bdd5b99081a5cc81b1bd8dad959608a1b604482015260640161057c565b5f8311610b0c5760405162461bcd60e51b815260206004820152602660248201527f5374616b6520616d6f756e74206d7573742062652067726561746572207468616044820152656e207a65726f60d01b606482015260840161057c565b5f858152600a6020908152604080832033845290915290205460ff1615610b865760405162461bcd60e51b815260206004820152602860248201527f557365722068617320616c72656164792070726564696374656420696e2074686044820152671a5cc81c9bdd5b9960c21b606482015260840161057c565b600481015460ff1615610bd65760405162461bcd60e51b8152602060048201526018602482015277149bdd5b99081a5cc8185b1c9958591e481cd95d1d1b195960421b604482015260640161057c565b600254610bee906001600160a01b03163330866116d0565b82816005015f828254610c019190611ad0565b90915550508315610c2a5782816006015f828254610c1f9190611ad0565b90915550610c439050565b82816007015f828254610c3d9190611ad0565b90915550505b5f858152600a6020908152604080832033808552908352818420805460ff19908116600117909155898552600b84528285208286528452828520889055898552600c845282852082865284529382902080548915159516851790558151938452918301869052909187917f7ae59d09350fd625b6d654adc6a6bfe53937659382863078ee717d266d549d41910160405180910390a35050610ce360015f55565b505050565b610cf061170f565b612710811115610d425760405162461bcd60e51b815260206004820152601b60248201527f46656520726174652063616e6e6f742065786365656420313030250000000000604482015260640161057c565b600555565b610d4f61170f565b6001600160a01b038116610d9e5760405162461bcd60e51b8152602060048201526016602482015275496e76616c6964206f7261636c65206164647265737360501b604482015260640161057c565b600380546001600160a01b0319166001600160a01b0392909216919091179055565b5f5f5f5f855f81118015610dd657506006548111155b610df25760405162461bcd60e51b815260040161057c90611a43565b5050505f848152600a602090815260408083206001600160a01b039690961680845295825280832054878452600b8352818420878552835281842054888552600c8452828520888652845282852054988552600d8452828520978552969092529091205460ff918216969495821694911692509050565b610e7161170f565b600755565b610e7e61170f565b610e875f61173c565b565b5f5f5f5f5f5f5f5f5f895f81118015610ea457506006548111155b610ec05760405162461bcd60e51b815260040161057c90611a43565b5050505f978852505060096020525050604090932080546001820154600283015460038401546004850154600586015460068701546007880154600890980154969b959a5093985091965060ff908116959194929391921690565b606082821015610f5d5760405162461bcd60e51b815260206004820152600d60248201526c496e76616c69642072616e676560981b604482015260640161057c565b600654821115610faf5760405162461bcd60e51b815260206004820152601f60248201527f456e6420726f756e6420657863656564732063757272656e7420726f756e6400604482015260640161057c565b5f835b838111611003575f818152600a602090815260408083206001600160a01b038a16845290915290205460ff1615610ff15781610fed81611ae3565b9250505b80610ffb81611ae3565b915050610fb2565b505f8167ffffffffffffffff81111561101e5761101e611810565b604051908082528060200260200182016040528015611047578160200160208202803683370190505b5090505f855b8581116110bc575f818152600a602090815260408083206001600160a01b038c16845290915290205460ff16156110aa578083838151811061109157611091611a2f565b6020908102919091010152816110a681611ae3565b9250505b806110b481611ae3565b91505061104d565b50909695505050505050565b6003546001600160a01b031633146111225760405162461bcd60e51b815260206004820152601960248201527f4f6e6c79206f7261636c652063616e2063616c6c207468697300000000000000604482015260640161057c565b815f8111801561113457506006548111155b6111505760405162461bcd60e51b815260040161057c90611a43565b5f838152600960205260409020600281015460018201546111719190611ad0565b4210156111c05760405162461bcd60e51b815260206004820152601b60248201527f526f756e64206c6f636b2074696d65206e6f7420656c61707365640000000000604482015260640161057c565b600481015460ff16156112105760405162461bcd60e51b8152602060048201526018602482015277149bdd5b99081a5cc8185b1c9958591e481cd95d1d1b195960421b604482015260640161057c565b8260ff166001148061122557508260ff166002145b6112715760405162461bcd60e51b815260206004820152601f60248201527f496e76616c696420726573756c7420286d7573742062652031206f7220322900604482015260640161057c565b60048101805460ff1990811660011790915560088201805460ff861692168217905542600383015560405190815284907f22697572ca2feb298c3278a751e187a8ecf2a81b95f67fb4059c6e7e9c5e7ff19060200160405180910390a250505050565b6112dc61170f565b600855565b6112e961170f565b600654156113a7576006545f908152600960205260409020600481015460ff16806113275750806002015481600101546113239190611ad0565b4210155b6113a55760405162461bcd60e51b815260206004820152604360248201527f43616e6e6f74207374617274206e657720726f756e643a2063757272656e742060448201527f726f756e64206973207374696c6c206f70656e20666f722070726564696374696064820152626f6e7360e81b608482015260a40161057c565b505b60068054905f6113b683611ae3565b9091555050604080516101208101825260068054808352426020808501828152600880548789019081525f6060890181815260808a0182815260a08b0183815260c08c0184815260e08d018581526101008e018681529b865260098a52948e90209c518d55965160018d0155935160028c0155905160038b01555160048a01805491151560ff19928316179055915160058a0155925188880155915160078801559351958401805460ff90971696909116959095179094559154905484519283529282019290925290917fa359b664a68acd8839e42112eb50eff3408165e15074fde89ddb58a0db2e691d910160405180910390a2565b6114b561170f565b6002546040516370a0823160e01b81523060048201525f916001600160a01b0316906370a0823190602401602060405180830381865afa1580156114fb573d5f5f3e3d5ffd5b505050506040513d601f19601f8201168201806040525081019061151f9190611afb565b90505f81116115675760405162461bcd60e51b81526020600482015260146024820152734e6f2066756e647320746f20776974686472617760601b604482015260640161057c565b6109cc61157c6001546001600160a01b031690565b6002546001600160a01b03169083611671565b61159761170f565b6001600160a01b0381166115ed5760405162461bcd60e51b815260206004820152601c60248201527f496e76616c696420666565207265636569766572206164647265737300000000604482015260640161057c565b600480546001600160a01b0319166001600160a01b0392909216919091179055565b61161761170f565b6001600160a01b03811661164057604051631e4fbdf760e01b81525f600482015260240161057c565b6109cc8161173c565b60025f540361166b57604051633ee5aeb560e01b815260040160405180910390fd5b60025f55565b6040516001600160a01b03838116602483015260448201839052610ce391859182169063a9059cbb906064015b604051602081830303815290604052915060e01b6020820180516001600160e01b03838183161783525050505061178d565b6040516001600160a01b0384811660248301528381166044830152606482018390526117099186918216906323b872dd9060840161169e565b50505050565b6001546001600160a01b03163314610e875760405163118cdaa760e01b815233600482015260240161057c565b600180546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0905f90a35050565b5f5f60205f8451602086015f885af1806117ac576040513d5f823e3d81fd5b50505f513d915081156117c35780600114156117d0565b6001600160a01b0384163b155b1561170957604051635274afe760e01b81526001600160a01b038516600482015260240161057c565b5f60208284031215611809575f5ffd5b5035919050565b634e487b7160e01b5f52604160045260245ffd5b5f60208284031215611834575f5ffd5b813567ffffffffffffffff81111561184a575f5ffd5b8201601f8101841361185a575f5ffd5b803567ffffffffffffffff81111561187457611874611810565b8060051b604051601f19603f830116810181811067ffffffffffffffff821117156118a1576118a1611810565b6040529182526020818401810192908101878411156118be575f5ffd5b6020850194505b838510156118e1578435808252602095860195909350016118c5565b509695505050505050565b5f5f5f606084860312156118fe575f5ffd5b8335925060208401358015158114611914575f5ffd5b929592945050506040919091013590565b80356001600160a01b038116811461193b575f5ffd5b919050565b5f60208284031215611950575f5ffd5b61195982611925565b9392505050565b5f5f60408385031215611971575f5ffd5b8235915061198160208401611925565b90509250929050565b5f5f5f6060848603121561199c575f5ffd5b6119a584611925565b95602085013595506040909401359392505050565b602080825282518282018190525f918401906040840190835b818110156119f15783518352602093840193909201916001016119d3565b509095945050505050565b5f5f60408385031215611a0d575f5ffd5b82359150602083013560ff81168114611a24575f5ffd5b809150509250929050565b634e487b7160e01b5f52603260045260245ffd5b60208082526010908201526f125b9d985b1a59081c9bdd5b9908125160821b604082015260600190565b634e487b7160e01b5f52601160045260245ffd5b8082028115828204841417611a9857611a98611a6d565b92915050565b5f82611ab857634e487b7160e01b5f52601260045260245ffd5b500490565b81810381811115611a9857611a98611a6d565b80820180821115611a9857611a98611a6d565b5f60018201611af457611af4611a6d565b5060010190565b5f60208284031215611b0b575f5ffd5b505191905056fea26469706673582212201d6eb278ba91f6c46b4f4f56ece243fd6934e925cac31663723bdf9d5cdbe51f64736f6c634300081c0033",
+  "deployedBytecode": "0x608060405234801561000f575f5ffd5b50600436106101c6575f3560e01c80638da5cb5b116100fe578063b3f006741161009e578063db2e21bc1161006e578063db2e21bc146104c4578063dc8ea32f146104cc578063efdcd974146104f9578063f2fde38b1461050c575f5ffd5b8063b3f0067414610476578063b43e6cb414610489578063b85502a014610492578063bd85948c146104bc575f5ffd5b80639cbe5efd116100d95780639cbe5efd14610434578063a89ae4ba1461043d578063aa28306a14610450578063ae04d45d14610463575f5ffd5b80638da5cb5b146103fa578063951fd6001461040b578063978bbdb91461042b575f5ffd5b80636ac28cb31161016957806385d6b4261161014457806385d6b426146102e9578063873f6f9e1461031657806388c3ffb0146103435780638c65c81f1461039d575f5ffd5b80636ac28cb3146102915780637083d1c2146102ce578063715018a6146102e1575f5ffd5b80631fccf672116101a45780631fccf6721461022d578063268ec7341461025857806345596e2e1461026b5780634c69c00f1461027e575f5ffd5b80630d668087146101ca578063173eb57f146101e65780631bf0ade014610218575b5f5ffd5b6101d360085481565b6040519081526020015b60405180910390f35b6102086101f43660046117f9565b600e6020525f908152604090205460ff1681565b60405190151581526020016101dd565b61022b610226366004611824565b61051f565b005b600254610240906001600160a01b031681565b6040516001600160a01b0390911681526020016101dd565b61022b6102663660046118ec565b6109cf565b61022b6102793660046117f9565b610ce8565b61022b61028c366004611940565b610d47565b6102a461029f366004611960565b610dc0565b604080519415158552602085019390935290151591830191909152151560608201526080016101dd565b61022b6102dc3660046117f9565b610e69565b61022b610e76565b6102086102f7366004611960565b600a60209081525f928352604080842090915290825290205460ff1681565b610208610324366004611960565b600d60209081525f928352604080842090915290825290205460ff1681565b6103566103513660046117f9565b610e89565b60408051998a5260208a0198909852968801959095526060870193909352901515608086015260a085015260c084015260e083015260ff16610100820152610120016101dd565b6103566103ab3660046117f9565b60096020525f9081526040902080546001820154600283015460038401546004850154600586015460068701546007880154600890980154969795969495939460ff9384169492939192911689565b6001546001600160a01b0316610240565b61041e61041936600461198a565b610f1b565b6040516101dd91906119ba565b6101d360055481565b6101d360065481565b600354610240906001600160a01b031681565b61022b61045e3660046119fc565b6110c8565b61022b6104713660046117f9565b6112d4565b600454610240906001600160a01b031681565b6101d360075481565b6101d36104a0366004611960565b600b60209081525f928352604080842090915290825290205481565b61022b6112e1565b61022b6114ad565b6102086104da366004611960565b600c60209081525f928352604080842090915290825290205460ff1681565b61022b610507366004611940565b61158f565b61022b61051a366004611940565b61160f565b610527611649565b5f5b81518110156109c2575f82828151811061054557610545611a2f565b602002602001015190505f8111801561056057506006548111155b6105855760405162461bcd60e51b815260040161057c90611a43565b60405180910390fd5b5f818152600960205260409020600481015460ff166105dd5760405162461bcd60e51b8152602060048201526014602482015273149bdd5b99081a5cc81b9bdd081cd95d1d1b195960621b604482015260640161057c565b5f828152600a6020908152604080832033845290915290205460ff166106505760405162461bcd60e51b815260206004820152602260248201527f5573657220646964206e6f74207072656469637420696e207468697320726f756044820152611b9960f21b606482015260840161057c565b5f828152600d6020908152604080832033845290915290205460ff16156106c95760405162461bcd60e51b815260206004820152602760248201527f557365722068617320616c726561647920636c61696d656420666f72207468696044820152661cc81c9bdd5b9960ca1b606482015260840161057c565b60088101545f9060ff1660011480156106fa57505f838152600c6020908152604080832033845290915290205460ff165b1561070757506001610740565b600882015460ff16600214801561073757505f838152600c6020908152604080832033845290915290205460ff16155b15610740575060015b8015610993575f838152600b60209081526040808320338452909152812054600884015490919060ff1660011461077b578360070154610781565b83600601545b60088501549091505f9060ff1660011461079f5784600601546107a5565b84600701545b5f878152600e60205260408120549192509060ff161580156107c657505f82115b80156107d357505f600554115b1561086d57612710600554836107e99190611a81565b6107f39190611a9e565b9050801561086d57600454600254610818916001600160a01b03918216911683611671565b5f878152600e602052604090819020805460ff191660011790555187907faf7c505ee772ec188af7067e1f73db08ab028e3d564273442b907742b9c41fa0906108649084815260200190565b60405180910390a25b5f6108788284611abd565b90505f841580159061088957505f82115b156108b8575f8561089a8489611a81565b6108a49190611a9e565b90506108b08188611ad0565b9150506108bb565b50845b5f811161091a5760405162461bcd60e51b815260206004820152602760248201527f5061796f757420616d6f756e74206d7573742062652067726561746572207468604482015266616e207a65726f60c81b606482015260840161057c565b600254610931906001600160a01b03163383611671565b5f898152600d602090815260408083203380855290835292819020805460ff19166001179055518381528b917f5380cf6fe903b40c6d5a9e0dfbca2f3a423f0a21520b4d5947ed5169bdba946d910160405180910390a35050505050506109b7565b5f838152600d602090815260408083203384529091529020805460ff191660011790555b505050600101610529565b506109cc60015f55565b50565b6109d7611649565b825f811180156109e957506006548111155b610a055760405162461bcd60e51b815260040161057c90611a43565b5f8481526009602052604090206006548514610a5a5760405162461bcd60e51b8152602060048201526014602482015273149bdd5b99081a5cc81b9bdd0818dd5c9c995b9d60621b604482015260640161057c565b80600201548160010154610a6e9190611ad0565b4210610aae5760405162461bcd60e51b815260206004820152600f60248201526e149bdd5b99081a5cc81b1bd8dad959608a1b604482015260640161057c565b5f8311610b0c5760405162461bcd60e51b815260206004820152602660248201527f5374616b6520616d6f756e74206d7573742062652067726561746572207468616044820152656e207a65726f60d01b606482015260840161057c565b5f858152600a6020908152604080832033845290915290205460ff1615610b865760405162461bcd60e51b815260206004820152602860248201527f557365722068617320616c72656164792070726564696374656420696e2074686044820152671a5cc81c9bdd5b9960c21b606482015260840161057c565b600481015460ff1615610bd65760405162461bcd60e51b8152602060048201526018602482015277149bdd5b99081a5cc8185b1c9958591e481cd95d1d1b195960421b604482015260640161057c565b600254610bee906001600160a01b03163330866116d0565b82816005015f828254610c019190611ad0565b90915550508315610c2a5782816006015f828254610c1f9190611ad0565b90915550610c439050565b82816007015f828254610c3d9190611ad0565b90915550505b5f858152600a6020908152604080832033808552908352818420805460ff19908116600117909155898552600b84528285208286528452828520889055898552600c845282852082865284529382902080548915159516851790558151938452918301869052909187917f7ae59d09350fd625b6d654adc6a6bfe53937659382863078ee717d266d549d41910160405180910390a35050610ce360015f55565b505050565b610cf061170f565b612710811115610d425760405162461bcd60e51b815260206004820152601b60248201527f46656520726174652063616e6e6f742065786365656420313030250000000000604482015260640161057c565b600555565b610d4f61170f565b6001600160a01b038116610d9e5760405162461bcd60e51b8152602060048201526016602482015275496e76616c6964206f7261636c65206164647265737360501b604482015260640161057c565b600380546001600160a01b0319166001600160a01b0392909216919091179055565b5f5f5f5f855f81118015610dd657506006548111155b610df25760405162461bcd60e51b815260040161057c90611a43565b5050505f848152600a602090815260408083206001600160a01b039690961680845295825280832054878452600b8352818420878552835281842054888552600c8452828520888652845282852054988552600d8452828520978552969092529091205460ff918216969495821694911692509050565b610e7161170f565b600755565b610e7e61170f565b610e875f61173c565b565b5f5f5f5f5f5f5f5f5f895f81118015610ea457506006548111155b610ec05760405162461bcd60e51b815260040161057c90611a43565b5050505f978852505060096020525050604090932080546001820154600283015460038401546004850154600586015460068701546007880154600890980154969b959a5093985091965060ff908116959194929391921690565b606082821015610f5d5760405162461bcd60e51b815260206004820152600d60248201526c496e76616c69642072616e676560981b604482015260640161057c565b600654821115610faf5760405162461bcd60e51b815260206004820152601f60248201527f456e6420726f756e6420657863656564732063757272656e7420726f756e6400604482015260640161057c565b5f835b838111611003575f818152600a602090815260408083206001600160a01b038a16845290915290205460ff1615610ff15781610fed81611ae3565b9250505b80610ffb81611ae3565b915050610fb2565b505f8167ffffffffffffffff81111561101e5761101e611810565b604051908082528060200260200182016040528015611047578160200160208202803683370190505b5090505f855b8581116110bc575f818152600a602090815260408083206001600160a01b038c16845290915290205460ff16156110aa578083838151811061109157611091611a2f565b6020908102919091010152816110a681611ae3565b9250505b806110b481611ae3565b91505061104d565b50909695505050505050565b6003546001600160a01b031633146111225760405162461bcd60e51b815260206004820152601960248201527f4f6e6c79206f7261636c652063616e2063616c6c207468697300000000000000604482015260640161057c565b815f8111801561113457506006548111155b6111505760405162461bcd60e51b815260040161057c90611a43565b5f838152600960205260409020600281015460018201546111719190611ad0565b4210156111c05760405162461bcd60e51b815260206004820152601b60248201527f526f756e64206c6f636b2074696d65206e6f7420656c61707365640000000000604482015260640161057c565b600481015460ff16156112105760405162461bcd60e51b8152602060048201526018602482015277149bdd5b99081a5cc8185b1c9958591e481cd95d1d1b195960421b604482015260640161057c565b8260ff166001148061122557508260ff166002145b6112715760405162461bcd60e51b815260206004820152601f60248201527f496e76616c696420726573756c7420286d7573742062652031206f7220322900604482015260640161057c565b60048101805460ff1990811660011790915560088201805460ff861692168217905542600383015560405190815284907f22697572ca2feb298c3278a751e187a8ecf2a81b95f67fb4059c6e7e9c5e7ff19060200160405180910390a250505050565b6112dc61170f565b600855565b6112e961170f565b600654156113a7576006545f908152600960205260409020600481015460ff16806113275750806002015481600101546113239190611ad0565b4210155b6113a55760405162461bcd60e51b815260206004820152604360248201527f43616e6e6f74207374617274206e657720726f756e643a2063757272656e742060448201527f726f756e64206973207374696c6c206f70656e20666f722070726564696374696064820152626f6e7360e81b608482015260a40161057c565b505b60068054905f6113b683611ae3565b9091555050604080516101208101825260068054808352426020808501828152600880548789019081525f6060890181815260808a0182815260a08b0183815260c08c0184815260e08d018581526101008e018681529b865260098a52948e90209c518d55965160018d0155935160028c0155905160038b01555160048a01805491151560ff19928316179055915160058a0155925188880155915160078801559351958401805460ff90971696909116959095179094559154905484519283529282019290925290917fa359b664a68acd8839e42112eb50eff3408165e15074fde89ddb58a0db2e691d910160405180910390a2565b6114b561170f565b6002546040516370a0823160e01b81523060048201525f916001600160a01b0316906370a0823190602401602060405180830381865afa1580156114fb573d5f5f3e3d5ffd5b505050506040513d601f19601f8201168201806040525081019061151f9190611afb565b90505f81116115675760405162461bcd60e51b81526020600482015260146024820152734e6f2066756e647320746f20776974686472617760601b604482015260640161057c565b6109cc61157c6001546001600160a01b031690565b6002546001600160a01b03169083611671565b61159761170f565b6001600160a01b0381166115ed5760405162461bcd60e51b815260206004820152601c60248201527f496e76616c696420666565207265636569766572206164647265737300000000604482015260640161057c565b600480546001600160a01b0319166001600160a01b0392909216919091179055565b61161761170f565b6001600160a01b03811661164057604051631e4fbdf760e01b81525f600482015260240161057c565b6109cc8161173c565b60025f540361166b57604051633ee5aeb560e01b815260040160405180910390fd5b60025f55565b6040516001600160a01b03838116602483015260448201839052610ce391859182169063a9059cbb906064015b604051602081830303815290604052915060e01b6020820180516001600160e01b03838183161783525050505061178d565b6040516001600160a01b0384811660248301528381166044830152606482018390526117099186918216906323b872dd9060840161169e565b50505050565b6001546001600160a01b03163314610e875760405163118cdaa760e01b815233600482015260240161057c565b600180546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0905f90a35050565b5f5f60205f8451602086015f885af1806117ac576040513d5f823e3d81fd5b50505f513d915081156117c35780600114156117d0565b6001600160a01b0384163b155b1561170957604051635274afe760e01b81526001600160a01b038516600482015260240161057c565b5f60208284031215611809575f5ffd5b5035919050565b634e487b7160e01b5f52604160045260245ffd5b5f60208284031215611834575f5ffd5b813567ffffffffffffffff81111561184a575f5ffd5b8201601f8101841361185a575f5ffd5b803567ffffffffffffffff81111561187457611874611810565b8060051b604051601f19603f830116810181811067ffffffffffffffff821117156118a1576118a1611810565b6040529182526020818401810192908101878411156118be575f5ffd5b6020850194505b838510156118e1578435808252602095860195909350016118c5565b509695505050505050565b5f5f5f606084860312156118fe575f5ffd5b8335925060208401358015158114611914575f5ffd5b929592945050506040919091013590565b80356001600160a01b038116811461193b575f5ffd5b919050565b5f60208284031215611950575f5ffd5b61195982611925565b9392505050565b5f5f60408385031215611971575f5ffd5b8235915061198160208401611925565b90509250929050565b5f5f5f6060848603121561199c575f5ffd5b6119a584611925565b95602085013595506040909401359392505050565b602080825282518282018190525f918401906040840190835b818110156119f15783518352602093840193909201916001016119d3565b509095945050505050565b5f5f60408385031215611a0d575f5ffd5b82359150602083013560ff81168114611a24575f5ffd5b809150509250929050565b634e487b7160e01b5f52603260045260245ffd5b60208082526010908201526f125b9d985b1a59081c9bdd5b9908125160821b604082015260600190565b634e487b7160e01b5f52601160045260245ffd5b8082028115828204841417611a9857611a98611a6d565b92915050565b5f82611ab857634e487b7160e01b5f52601260045260245ffd5b500490565b81810381811115611a9857611a98611a6d565b80820180821115611a9857611a98611a6d565b5f60018201611af457611af4611a6d565b5060010190565b5f60208284031215611b0b575f5ffd5b505191905056fea26469706673582212201d6eb278ba91f6c46b4f4f56ece243fd6934e925cac31663723bdf9d5cdbe51f64736f6c634300081c0033",
+  "devdoc": {
+    "details": "Round-based prediction market for token volatility using cUSD ERC20 token",
+    "errors": {
+      "OwnableInvalidOwner(address)": [
+        {
+          "details": "The owner is not a valid owner account. (eg. `address(0)`)"
+        }
+      ],
+      "OwnableUnauthorizedAccount(address)": [
+        {
+          "details": "The caller account is not authorized to perform an operation."
+        }
+      ],
+      "ReentrancyGuardReentrantCall()": [
+        {
+          "details": "Unauthorized reentrant call."
+        }
+      ],
+      "SafeERC20FailedOperation(address)": [
+        {
+          "details": "An operation with an ERC-20 token failed."
+        }
+      ]
+    },
+    "kind": "dev",
+    "methods": {
+      "claimWinnings(uint256[])": {
+        "details": "Claim winnings for settled rounds (Public, Pull-based)",
+        "params": {
+          "_roundIds": "Array of round IDs to claim winnings for"
+        }
+      },
+      "constructor": {
+        "details": "Constructor",
+        "params": {
+          "_cUSDAddress": "Address of the cUSD ERC20 token contract",
+          "_feeRate": "Fee rate in basis points (e.g., 250 = 2.50%)",
+          "_feeReceiver": "Address to receive fees",
+          "_lockTime": "Lock time in seconds",
+          "_oracleAddress": "Address authorized to settle rounds",
+          "_riskThreshold": "Risk threshold in basis points (e.g., 150 = 1.5%)"
+        }
+      },
+      "emergencyWithdraw()": {
+        "details": "Emergency withdraw (OnlyOwner) - for stuck cUSD funds"
+      },
+      "getRoundInfo(uint256)": {
+        "details": "Get round information (Public/View)",
+        "params": {
+          "_roundId": "The round ID to query"
+        }
+      },
+      "getUserPrediction(uint256,address)": {
+        "details": "Get user's prediction for a specific round",
+        "params": {
+          "_roundId": "The round ID",
+          "_user": "The user address"
+        }
+      },
+      "getUserRounds(address,uint256,uint256)": {
+        "details": "Get user's rounds with predictions",
+        "params": {
+          "_endRound": "Ending round ID (inclusive)",
+          "_startRound": "Starting round ID (inclusive)",
+          "_user": "The user address"
+        }
+      },
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "placePrediction(uint256,bool,uint256)": {
+        "details": "Place a prediction (Public)",
+        "params": {
+          "_amount": "Amount of cUSD to stake (must be approved beforehand)",
+          "_predictsHigher": "True for Higher volatility, false for Lower volatility",
+          "_roundId": "The round ID to predict on"
+        }
+      },
+      "renounceOwnership()": {
+        "details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
+      },
+      "setFeeRate(uint256)": {
+        "details": "Update fee rate (OnlyOwner)",
+        "params": {
+          "_feeRate": "New fee rate in basis points (max 10000 = 100%)"
+        }
+      },
+      "setFeeReceiver(address)": {
+        "details": "Update fee receiver address (OnlyOwner)"
+      },
+      "setLockTime(uint256)": {
+        "details": "Update lock time (OnlyOwner)",
+        "params": {
+          "_lockTime": "New lock time in seconds"
+        }
+      },
+      "setOracleAddress(address)": {
+        "details": "Update oracle address (OnlyOwner)"
+      },
+      "setRiskThreshold(uint256)": {
+        "details": "Update risk threshold (OnlyOwner)",
+        "params": {
+          "_riskThreshold": "New risk threshold in basis points"
+        }
+      },
+      "settleRound(uint256,uint8)": {
+        "details": "Settle a round (Admin/OnlyOracle)",
+        "params": {
+          "_result": "The outcome: 1=Higher, 2=Lower",
+          "_roundId": "The round ID to settle"
+        }
+      },
+      "startNewRound()": {
+        "details": "Start a new prediction round (Admin/OnlyOwner)"
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      }
+    },
+    "title": "VolatilityVanguard",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "claimWinnings(uint256[])": {
+        "notice": "CRITICAL: Fee is transferred to feeReceiver before user payout"
+      },
+      "placePrediction(uint256,bool,uint256)": {
+        "notice": "User must approve this contract to spend cUSD before calling this function"
+      },
+      "startNewRound()": {
+        "notice": "Can only start a new round if:         - No rounds exist yet (currentRoundId == 0), OR         - Current round is settled, OR         - Current round's lockTime has elapsed"
+      }
+    },
+    "notice": "Uses Inverse Liquidity Pool model with fees taken from losing pool",
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 820,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "_status",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 8,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 912,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "cUSD",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_contract(IERC20)315"
+      },
+      {
+        "astId": 914,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "oracleAddress",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_address"
+      },
+      {
+        "astId": 916,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "feeReceiver",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_address"
+      },
+      {
+        "astId": 918,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "feeRate",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 920,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "currentRoundId",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 922,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "riskThreshold",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 924,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "lockTime",
+        "offset": 0,
+        "slot": "8",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 948,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "rounds",
+        "offset": 0,
+        "slot": "9",
+        "type": "t_mapping(t_uint256,t_struct(Round)943_storage)"
+      },
+      {
+        "astId": 954,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "hasPredicted",
+        "offset": 0,
+        "slot": "10",
+        "type": "t_mapping(t_uint256,t_mapping(t_address,t_bool))"
+      },
+      {
+        "astId": 960,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "stakedAmount",
+        "offset": 0,
+        "slot": "11",
+        "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))"
+      },
+      {
+        "astId": 966,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "predictedHigher",
+        "offset": 0,
+        "slot": "12",
+        "type": "t_mapping(t_uint256,t_mapping(t_address,t_bool))"
+      },
+      {
+        "astId": 972,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "hasClaimed",
+        "offset": 0,
+        "slot": "13",
+        "type": "t_mapping(t_uint256,t_mapping(t_address,t_bool))"
+      },
+      {
+        "astId": 976,
+        "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+        "label": "feeCollected",
+        "offset": 0,
+        "slot": "14",
+        "type": "t_mapping(t_uint256,t_bool)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_contract(IERC20)315": {
+        "encoding": "inplace",
+        "label": "contract IERC20",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_mapping(t_uint256,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_mapping(t_uint256,t_mapping(t_address,t_bool))": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => mapping(address => bool))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_address,t_bool)"
+      },
+      "t_mapping(t_uint256,t_mapping(t_address,t_uint256))": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => mapping(address => uint256))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_address,t_uint256)"
+      },
+      "t_mapping(t_uint256,t_struct(Round)943_storage)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => struct VolatilityVanguard.Round)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Round)943_storage"
+      },
+      "t_struct(Round)943_storage": {
+        "encoding": "inplace",
+        "label": "struct VolatilityVanguard.Round",
+        "members": [
+          {
+            "astId": 926,
+            "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+            "label": "id",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 928,
+            "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+            "label": "startTime",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 930,
+            "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+            "label": "lockTime",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 932,
+            "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+            "label": "closeTime",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 934,
+            "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+            "label": "isSettled",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_bool"
+          },
+          {
+            "astId": 936,
+            "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+            "label": "totalPool",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 938,
+            "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+            "label": "totalHigherStaked",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 940,
+            "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+            "label": "totalLowerStaked",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 942,
+            "contract": "contracts/VolatilityVanguard.sol:VolatilityVanguard",
+            "label": "result",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_uint8"
+          }
+        ],
+        "numberOfBytes": "288"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      },
+      "t_uint8": {
+        "encoding": "inplace",
+        "label": "uint8",
+        "numberOfBytes": "1"
+      }
+    }
+  }
+}

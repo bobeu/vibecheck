@@ -13,8 +13,10 @@ node_modules
 /typechain-types
 
 # Large deployment files
-/deployments
-deployments
+/deployments/celo/solcInput
+/deployments/sepolia/solcInput
+deployments/sepolia/solcInput
+deployments/celo/solcInput
 /dist
 
 # solidity-coverage files
